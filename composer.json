@@ -1,0 +1,28 @@
+{
+    "name": "rabint/finance",
+    "description": "An extension for managing finance for yii2.",
+    "keywords": [
+        "yii2-finance",
+        "rabint-finance",
+        "finance",
+        "rabint"
+    ],
+    "type": "yii2-extension",
+    "homepage": "http://rabint.ir/yii2/ext/finance",
+    "license": "Exclusive",
+    "authors": [{
+        "name": "rabint",
+        "email": "info@rabint.ir",
+        "homepage": "http://www.rabint.ir"
+    }
+    ],
+    "minimum-stability": "beta",
+    "require": {
+        "rabint/base": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "rabint\\finance\\": ""
+        }
+    }
+}

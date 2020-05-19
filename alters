@@ -1,0 +1,2 @@
+ALTER TABLE `finance_transactions` ADD `settle_callback_function` TEXT NULL DEFAULT NULL AFTER `return_url`;
+
