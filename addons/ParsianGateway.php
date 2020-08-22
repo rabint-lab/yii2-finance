@@ -22,7 +22,8 @@ class ParsianGateway extends GatewayAbstract
             'url' => 'https://pec.shaparak.ir/NewIPGServices/Sale/SaleService.asmx?wsdl',
             'gonfirm' => 'https://pec.shaparak.ir/NewIPGServices/Confirm/ConfirmService.asmx?wsdl',
             'gateway_url' => 'https://pec.shaparak.ir/NewIPG/?Token=',
-            'PIN' => 'q8W0qHWCir4JodtFlWIe',
+            'PIN' => '8yLv4c3YODPgAUwf4Q8F',
+            //'Terminal' => '98473704',
         ];
         $this->gatewaySuccessStatus = 0;
         $this->messages = [
@@ -413,57 +414,23 @@ class ParsianGateway extends GatewayAbstract
         if (isset($_POST['Status'])) {
             $_POST['status'] = $_POST['Status'];
         }
-        if (isset($_POST['status']) && $_POST['status'] == 0 && isset($_POST['Token']) && $_POST['Token'] != "") {
+//        pr($_POST,1);
+//        if (isset($_POST['status']) && $_POST['status'] == 0 && isset($_POST['Token']) && $_POST['Token'] != "") {
+        if (isset($_POST['status']) && $_POST['status'] == 0 && isset($_POST['RRN']) && $_POST['RRN'] > 0) {
 
-            //settle
-            /* ================================================================== */
-            $client = new nusoap_client($this->config['gonfirm'], 'wsdl');
-            $client->soap_defencoding = 'UTF-8';
-            $client->decode_utf8 = false;
-
-            $client->soap_defencoding = 'UTF-8';
-
-            $err = $client->getError();
-            if ($err) {
-                return 1001;
-            }
-
-            $parameters = ['requestData' => [
-                'LoginAccount' => $this->config['PIN'],
-                'Token' =>  $_POST['Token']
-            ]];
-            $result = $client->call('PinPaymentEnquiry', $parameters);
-
-            /* Check for errors ================================================= */
-            if ($client->fault) {
-                return (isset($this->messages[$result])) ? $result : 1002;
-            }
-            $err = $client->getError();
-            if ($err) {
-                return (isset($this->messages[$err])) ? $err : 1002;
-            }
-
-
-            if (isset($result['ConfirmPaymentResult']) && $result['ConfirmPaymentResult'] != "") {
-                $result = $result['ConfirmPaymentResult'];
-            } else {
-                return 1001;
-            }
-
-            if (isset($result['Status'])) {
-                $result['status'] = $result['Status'];
-            }
-            
-            if (isset($result['status']) && $result['status'] == 0 && isset($result['RRN']) && $result['RRN'] > 0) {
-
-                $bankReference = (isset($result['RRN']) && $result['RRN'] > 0)  ? $result['RRN'] : "";
+                $bankReference = (isset($_POST['RRN']) && $_POST['RRN'] > 0)  ? $_POST['RRN'] : "";
                 $return['status'] = $this->gatewaySuccessStatus;
                 $return['gateway_reciept'] = $bankReference;
-                $return['gateway_meta'] = ['post' => $_POST, 'result' => $result];
+                $return['gateway_meta'] = ['post' => $_POST, 'result' => $_POST];
                 /* ------------------------------------------------------ */
                 return $return;
-            }
-            return $this->errReturn($result);
+//            return $this->errReturn($result);
+            
+            
+            
+//            //settle
+//            /* ================================================================== */
+//            
         }
         $return['status'] = 1004;
         return $return;
@@ -471,7 +438,47 @@ class ParsianGateway extends GatewayAbstract
 
     public function verifyPay($orderId, $gatewayMeta = [])
     {
-        return $this->gatewaySuccessStatus;
+        require_once __DIR__ . DIRECTORY_SEPARATOR . "lib" . DIRECTORY_SEPARATOR . "nusoap.php";
+        $client = new nusoap_client($this->config['gonfirm'], 'wsdl');
+        $client->soap_defencoding = 'UTF-8';
+        $client->decode_utf8 = false;
+
+        $client->soap_defencoding = 'UTF-8';
+        $err = $client->getError();
+        if ($err) {
+            return 1001;
+        }
+
+        $parameters = ['requestData' => [
+            'LoginAccount' => $this->config['PIN'],
+            'Token' =>  $_POST['Token']
+        ]];
+        $result = $client->call('ConfirmPayment', $parameters);
+
+        /* Check for errors ================================================= */
+        
+        if ($client->fault) {
+            return (isset($this->messages[$result])) ? $result : 1002;
+        }
+        $err = $client->getError();
+        
+        if ($err) {
+            return (isset($this->messages[$err])) ? $err : 1002;
+        }
+
+
+        if (isset($result['ConfirmPaymentResult']) && $result['ConfirmPaymentResult'] != "") {
+            $result = $result['ConfirmPaymentResult'];
+        } else {
+            return 1001;
+        }
+
+        if (isset($result['Status'])) {
+            $result['status'] = $result['Status'];
+        }
+        
+        return $this->errReturn($result);
+        
     }
 
     public function rollBack($orderId, $gatewayMeta = [])

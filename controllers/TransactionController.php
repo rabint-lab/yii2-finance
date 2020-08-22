@@ -2,6 +2,8 @@
 
 namespace rabint\finance\controllers;
 
+use rabint\finance\addons\WalletGateway;
+use rabint\finance\models\FinanceWallet;
 use Yii;
 use rabint\finance\models\FinanceTransactions;
 use rabint\finance\models\FinanceTransactionsSearch;
@@ -62,12 +64,18 @@ class TransactionController extends \rabint\controllers\PanelController
             $doPay = Yii::$app->request->post("do_pay");
             $gateway = Yii::$app->request->post("gateway");
 
-            if (!isset(FinanceTransactions::$paymentGateways[$gateway])) {
-                throw new ForbiddenHttpException(\Yii::t('rabint', 'درگاه انتخابی نا معتبر است'));
+            if ($gateway == 'wallet') {
+                $gateway= 0;
+                $selectedGateway = WalletGateway::class;
+            } else {
+
+                if (!isset(FinanceTransactions::paymentGateways()[$gateway])) {
+                    throw new ForbiddenHttpException(\Yii::t('rabint', 'درگاه انتخابی نا معتبر است'));
+                }
+                $selectedGateway = FinanceTransactions::paymentGateways()[$gateway]['class'];
             }
             $callbackUrl = \yii\helpers\Url::to(['/finance/default/afterpay', 'tid' => $model->id, 'token' => $model->token], TRUE);
 
-            $selectedGateway = FinanceTransactions::$paymentGateways[$gateway]['class'];
             $model->status = FinanceTransactions::TRANSACTION_INPROCESS;
             $model->gateway = $gateway;
             if ($model->save(false)) {

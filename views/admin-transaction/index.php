@@ -7,7 +7,7 @@ use rabint\widgets\GridView;
 /* @var $searchModel rabint\finance\models\FinanceTransactionsSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = Yii::t('rabint', 'Finance Transactions');
+$this->title = Yii::t('rabint', 'تراکنش های بانکی');
 $this->params['breadcrumbs'][] = $this->title;
 
 $this->context->layout = "@themeLayouts/full";
@@ -25,10 +25,10 @@ $this->context->layout = "@themeLayouts/full";
         <?= GridView::widget([
             'id'=>'crud-datatable',
             'dataProvider' => $dataProvider,
-            'filterModel' => $searchModel,
+            'showAddBtn' => false,
             'pjax'=>true,
             'columns' => require(__DIR__.'/_columns.php'),
-            'modelTitle' => Yii::t('rabint', 'Finance Transactions'),
+            'modelTitle' => Yii::t('rabint', 'تراکنش های بانکی'),
             'bulkActions' => $this->context::bulkActions(),
         ])?>
     </div>

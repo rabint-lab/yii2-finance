@@ -21,7 +21,7 @@ return [
     //[
     //    'class' => \rabint\components\grid\AdvanceEnumColumn::class,
     //    'attribute' => 'status',
-    //    'enum' => \rabint\open\models\Company::statuses(),
+    //    'enum' => \app\modules\open\models\Company::statuses(),
     //],
     //[
     //    'class' => \rabint\components\grid\JDateColumn::class,
@@ -120,11 +120,11 @@ return [
             'data-confirm-title' => Yii::t('rabint', 'Are you sure?'),
             'data-confirm-message' => Yii::t('rabint', 'Are you sure want to delete this item')
         ],
-        //        'template' => '{view} {update} {delete} <br/>{shortlink}',
+                'template' => '{view}',
         //        'buttons' => [
         //            'shortlink' => function ($url, $model) {
         //                $url = \Yii::$app->urlManager->createUrl(['/open/admin/index', 'EmployeeExecutiveSearch' => ['employee_id'=>$model->_id]]);
-        //                return \yii\bootstrap4\Html::a('<span class="fas fa-th-list"></span>', $url, [
+        //                return \yii\bootstrap4\Html::a('<span class="fa fa-th-list"></span>', $url, [
         //                    'title' => Yii::t('rabint', 'short link'),
         //                    'target' => '_BLANK'
         //                    //'role' => 'modal-remote',

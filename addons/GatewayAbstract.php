@@ -51,8 +51,9 @@ abstract class GatewayAbstract {
             $_model = new $class;
             $moduleGoftTrue = $_model->{$method}($params);
         }
-        else
+        else{
             $moduleGoftTrue = true;
+        }
         if ($payStatus['status'] === $this->gatewaySuccessStatus  && $moduleGoftTrue) {
             /**
              * settle a transaction

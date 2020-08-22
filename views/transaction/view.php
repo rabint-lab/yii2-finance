@@ -101,8 +101,24 @@ $this->params['breadcrumbs'][] = $this->title;
                         </h5>
                         <ul class="gateways">
                             <?php
+                            $cash = \rabint\finance\models\FinanceWallet::cash(\rabint\helpers\user::id());
+                            if($model->amount<=$cash){
+                                ?>
+                                <li>
+                                    <label>
+                                        <input type="radio" name="gateway" value="wallet" />
+                                        <?=\Yii::t('app','کسر از حساب');?>
+                                        <i style="font-size: 12px">(<?=
+                                        \Yii::t('app','موجودی حساب شما: '). number_format($cash). Yii::t('app', 'ریال');
+                                            ?>)</i>
+                                    </label>
+                                </li>
+                                <?php
+                            }
+                            ?>
+                            <?php
                             $first = true;
-                            foreach (Config::$paymentGateways as $key => $gateway) {
+                            foreach (\rabint\finance\models\FinanceTransactions::paymentGateways() as $key => $gateway) {
                                 ?>
                                 <li>
                                     <label>

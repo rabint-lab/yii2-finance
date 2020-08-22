@@ -2,17 +2,20 @@
 
 namespace rabint\finance\addons;
 
+use vendor\rabint\finance\addons\nusoap_client;
 use Yii;
 
 class ZarrinpalGateway extends GatewayAbstract {
+
+    const amountFactor=0.1;
 
     public function __construct() {
         $this->code = 3;
         $this->slug = 'zarrinpal';
         $this->title = Yii::t('rabint', 'درگاه پرداخت زرین‌پال');
         $this->config = [
-            'url' => 'https://de.zarinpal.com/pg/services/WebGate/wsdl',
-            'merchantid' => 'fb05324c-3077-11e6-9ba9-005056a205be',
+            'url' => 'https://www.zarinpal.com/pg/services/WebGate/wsdl',
+            'merchantid' => '5a98f41f-1672-496e-8762-db9173f04ffb',
         ];
         $this->gatewaySuccessStatus = 100;
         $this->messages = [
@@ -43,22 +46,32 @@ class ZarrinpalGateway extends GatewayAbstract {
     //
     public function startPay($orderId, $amount, $callbackUrl) {
 
+        $amount *= self::amountFactor;
+
         try {
-            $client = new \SoapClient($this->config['url']);
+            //$client = new \SoapClient($this->config['url']);
+            $client = new nusoap_client($this->config['url'], 'wsdl');
             $client->soap_defencoding = 'UTF-8';
-        } catch (\SoapFault $exception) {
+            $client->decode_utf8 = FALSE;
+        } catch (\Exception $exception) {
             return (isset($this->messages[$result['status']])) ? $result['status'] : 1006;
         }
 
         try {
-            $result = (array) $client->PaymentRequest(
-                            array(
-                                'MerchantID' => $this->config['merchantid'],
-                                'Amount' => $amount,
-                                'Description' => 'پرداخت سفارش شماره ' . $orderId,
-                                'CallbackURL' => $callbackUrl,
+            $result = $client->call('PaymentRequest',  array(
+                'MerchantID' => $this->config['merchantid'],
+                'Amount' => $amount,
+                'Description' => 'پرداخت سفارش شماره ' . $orderId,
+                'CallbackURL' => $callbackUrl,
             ));
-        } catch (\SoapFault $exception) {
+//            $result = (array) $client->PaymentRequest(
+//                            array(
+//                                'MerchantID' => $this->config['merchantid'],
+//                                'Amount' => $amount,
+//                                'Description' => 'پرداخت سفارش شماره ' . $orderId,
+//                                'CallbackURL' => $callbackUrl,
+//            ));
+        } catch (\Exception $exception) {
             return (isset($this->messages[$result['status']])) ? $result['status'] : 1007;
         }
 
@@ -104,9 +117,11 @@ class ZarrinpalGateway extends GatewayAbstract {
     public function payStatus($orderId, $gatewayData = []) {
 //        \Yii::warning('pay_get:' . print_r($_GET, TRUE) . ' - pay_post:' . print_r($_POST, TRUE), 'payCheck');
         try {
-            $client = new \SoapClient($this->config['url']);
+            //$client = new \SoapClient($this->config['url']);
+            $client = new nusoap_client($this->config['url'], 'wsdl');
             $client->soap_defencoding = 'UTF-8';
-        } catch (\SoapFault $exception) {
+            $client->decode_utf8 = FALSE;
+        } catch (\Exception $exception) {
             return (isset($this->messages[$result['status']])) ? $result['status'] : 1006;
         }
         $return = [
@@ -123,13 +138,15 @@ class ZarrinpalGateway extends GatewayAbstract {
                 'Authority' => $_GET['Authority'],
                 'Amount' => $transaction->amount,
             ];
-//            $result = $client->call("", array($params));
 
             try {
-                $result = (array) $client->PaymentVerification($params);
-            } catch (\SoapFault $exception) {
+                $result = (array) $client->call('PaymentVerification',$params);
+            } catch (\Exception $exception) {
                 return (isset($this->messages[$result['status']])) ? $result['status'] : 1008;
             }
+
+//            var_dump($result);
+//            die('!!!!!');
             /* Check for errors ================================================= */
 
 //            if ($client->fault) {

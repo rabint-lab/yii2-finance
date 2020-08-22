@@ -38,7 +38,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 [
                     'attribute' => 'amount',
                     'value' => function ($model) {
-                        return number_format($model->amount) . ' تومان';
+                        return number_format($model->amount) . ' ریال';
                     }
                 ],
                 [

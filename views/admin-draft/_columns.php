@@ -21,7 +21,7 @@ return [
     //[
     //    'class' => \rabint\components\grid\AdvanceEnumColumn::class,
     //    'attribute' => 'status',
-    //    'enum' => \rabint\open\models\Company::statuses(),
+    //    'enum' => \app\modules\open\models\Company::statuses(),
     //],
     //[
     //    'class' => \rabint\components\grid\JDateColumn::class,

@@ -22,10 +22,15 @@ use Yii;
  * @property string $additional_rows
  * @property string $metadata
  */
-class Config extends \yii\db\ActiveRecord {
+class Config extends \yii\db\ActiveRecord
+{
 
-    const GATEWAY_SELECT_METHOD = 'auto';
-    const ALLOW_USE_WALLET = false;
+    const TAX_PERCENT = 0;
+
+    //const GATEWAY_SELECT_METHOD = 'auto';
+    const GATEWAY_SELECT_METHOD = 'manual';
+    const ALLOW_USE_WALLET = true;
+    const AUTO_PAY_BY_WALLET = FALSE;
     const SHOW_FACTURE_PAGE = true;
 
     const TRANSACTION_PENDING = 0;
@@ -33,62 +38,65 @@ class Config extends \yii\db\ActiveRecord {
     const TRANSACTION_PAID = 2;
     const TRANSACTION_COMPLETED = 3;
     const TRANSACTION_SKIPPED = 4;
-    
+
 
     var $displayTitle = 'مدیریت مالی';
+    public static $defaultPaymentGatewayId = 4;
     public static $paymentGateways = [
-       // 1 => ['title'=>'درگاه زرین پال', 'class' => '\rabint\finance\addons\ZarrinpalGateway'],
-     //   2 => ['title'=>'درگاه تست','class' => '\rabint\finance\addons\TestGateway'],
+        //1 => ['title' => 'درگاه زرین پال', 'class' => '\rabint\finance\addons\ZarrinpalGateway'],
+        // 2 => ['title'=>'درگاه تست','class' => '\rabint\finance\addons\TestGateway'],
         4 => ['title'=>'درگاه پارسیان','class' => '\rabint\finance\addons\ParsianGateway'],
-       // 3 => ['title'=>'درگاه ملت','class' => '\rabint\finance\addons\MellatGateway']
+        // 3 => ['title'=>'درگاه ملت','class' => '\rabint\finance\addons\MellatGateway']
     ];
     public static $credit = 0;
 
     /**
      * @inheritdoc
      */
-    public static function tableName() {
+    public static function tableName()
+    {
         return 'finance_transactions';
     }
 
-    public static function statuses() {
+    public static function statuses()
+    {
         return [
-            self::TRANSACTION_PENDING=>['title'=>\Yii::t('rabint', 'منتظر پرداخت'),'class'=>'info'],
-            self::TRANSACTION_INPROCESS=>['title'=>\Yii::t('rabint', 'درحال پرداخت'),'class'=>'warning'],
-            self::TRANSACTION_PAID=>['title'=>\Yii::t('rabint', 'پرداخت شده'),'class'=>'success'],
-            self::TRANSACTION_COMPLETED=>['title'=>\Yii::t('rabint', 'تکمیل شده'),'class'=>'primary'],
-            self::TRANSACTION_SKIPPED=>['title'=>\Yii::t('rabint', 'خطا در پرداخت'),'class'=>'danger'],
+            self::TRANSACTION_PENDING => ['title' => \Yii::t('rabint', 'منتظر پرداخت'), 'class' => 'info'],
+            self::TRANSACTION_INPROCESS => ['title' => \Yii::t('rabint', 'درحال پرداخت'), 'class' => 'warning'],
+            self::TRANSACTION_PAID => ['title' => \Yii::t('rabint', 'پرداخت شده'), 'class' => 'success'],
+            self::TRANSACTION_COMPLETED => ['title' => \Yii::t('rabint', 'تکمیل شده'), 'class' => 'primary'],
+            self::TRANSACTION_SKIPPED => ['title' => \Yii::t('rabint', 'خطا در پرداخت'), 'class' => 'danger'],
         ];
     }
 
-    public static function paymentGateways() {
-        return [
-            -1=>['title'=>\Yii::t('rabint', 'درگاه تست'),'class'=>'warning'],
-            //1=>['title'=>\Yii::t('rabint', 'درگاه تست'),'class'=>'warning'],
-            //2=>['title'=>\Yii::t('rabint', 'درگاه زرین پال'),'class'=>'info'],
-            //3=>['title'=>\Yii::t('rabint', 'درگاه ملت'),'class'=>'danger'],
-            4=>['title'=>\Yii::t('rabint', 'درگاه پارسیان'),'class'=>'primary'],
-        ];
+    public static function paymentGateways()
+    {
+        $paymentGateways = static::$paymentGateways;
+        if (USER_CAN_DEBUG) {
+            //$paymentGateways[2] = ['title' => 'درگاه تست', 'class' => '\rabint\finance\addons\TestGateway'];
+        }
+        return $paymentGateways;
     }
-
 
 
     /**
      * @inheritdoc
      */
-    public function rules() {
+    public function rules()
+    {
         return [
             [['created_at', 'transactioner', 'amount', 'status', 'gateway', 'transactioner_ip', 'internal_reciept', 'token', 'return_url', 'additional_rows'], 'required'],
             [['created_at', 'transactioner', 'amount', 'status', 'gateway'], 'integer'],
-            [['additional_rows'], 'string'],
-            [['gateway_reciept', 'gateway_meta', 'transactioner_ip', 'internal_reciept', 'token', 'return_url', 'metadata'], 'string', 'max' => 255]
+            [['additional_rows', 'metadata','settle_callback_function','gateway_meta'], 'string'],
+            [['gateway_reciept', 'transactioner_ip', 'internal_reciept', 'token', 'return_url'], 'string', 'max' => 255]
         ];
     }
 
     /**
      * @inheritdoc
      */
-    public function attributeLabels() {
+    public function attributeLabels()
+    {
         return [
             'id' => Yii::t('rabint', 'شناسه'),
             'created_at' => Yii::t('rabint', 'زمان درخواست'),
@@ -108,6 +116,5 @@ class Config extends \yii\db\ActiveRecord {
     }
 
 
-    
     /* =================================================================== */
 }

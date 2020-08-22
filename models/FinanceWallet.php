@@ -77,7 +77,7 @@ class FinanceWallet extends \yii\db\ActiveRecord {
         return intval($cash);
     }
 
-    static function inc($user_id, $amount, $transactioner = '', $transactioner_ip = '', $description = '', $metadata = '') {
+    static function inc($user_id, $amount, $transactioner = '', $transactioner_ip = '::1', $description = '', $metadata = '') {
         $wallet = new FinanceWallet();
         $wallet->created_at = time();
         $wallet->user_id = $user_id;
@@ -86,8 +86,8 @@ class FinanceWallet extends \yii\db\ActiveRecord {
         $wallet->transactioner_ip = $transactioner_ip;
         $wallet->description = $description;
         $wallet->metadata = json_encode($metadata);
-        $wallet->save();
-        return ($wallet->save()) ? TRUE : FALSE;
+//        $wallet->save();
+        return ($wallet->save(false)) ? TRUE : FALSE;
     }
 
     static function dec($user_id, $amount, $transactioner = '', $transactioner_ip = '', $description = '', $metadata = '') {
@@ -115,16 +115,22 @@ class FinanceWallet extends \yii\db\ActiveRecord {
     static function balancingPay($user_id, $aditionalData, $transactioner = '', $transactioner_ip = '') {
         $allRows = [];
         foreach ((array) $aditionalData as $row) {
-            $user_id = isset($row['user_id']) ? $row['user_id'] : $user_id;
+            if(!isset($row['amount'])){
+                continue;
+            }
+            $r_user_id = isset($row['user_id']) ? $row['user_id'] : $user_id;
             $allRows[] = [
                 time(),
-                $user_id,
+                $r_user_id,
                 $row['amount'],
                 $transactioner,
                 $transactioner_ip,
                 $row['description'],
                 json_encode($row['metadata']),
             ];
+        }
+        if(empty($allRows)){
+            return false;
         }
         $tableName = 'finance_wallet';
         $connection = Yii::$app->db;
@@ -133,9 +139,12 @@ class FinanceWallet extends \yii\db\ActiveRecord {
             $connection->createCommand()->batchInsert(
                     $tableName, ['created_at', 'user_id', 'amount', 'transactioner', 'transactioner_ip', 'description', 'metadata'], $allRows
             )->execute();
+
             $transaction->commit();
+            return true;
         } catch (\Exception $e) {
             $transaction->rollBack();
+            return false;
         }
     }
 

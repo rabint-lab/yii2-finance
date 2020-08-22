@@ -20,28 +20,27 @@ class FinanceTransactions extends Config
         if (empty($model))
             return FALSE;
         $model->gateway_meta = json_encode($data);
-        return ($model->save()) ? TRUE : FALSE;
+        return ($model->save(false)) ? TRUE : FALSE;
     }
 
     static function setPayFailed($model)
     {
         $model->status = self::TRANSACTION_SKIPPED;
-        return ($model->save()) ? TRUE : FALSE;
+        return ($model->save(false)) ? TRUE : FALSE;
     }
 
     static function setPayPaid($model, $gateway_reciept, $gateway_meta)
     {
         $model->status = self::TRANSACTION_PAID;
         $model->gateway_reciept = (string) $gateway_reciept;
-        $model->gateway_meta = $gateway_meta;
-        $model->save();
-        return ($model->save()) ? TRUE : FALSE;
+        $model->gateway_meta = \yii\helpers\Json::encode($gateway_meta);
+        return ($model->save(false)) ? TRUE : FALSE;
     }
 
     static function setPayVerified($model)
     {
         $model->status = self::TRANSACTION_COMPLETED;
-        if (!$model->save()) {
+        if (!$model->save(false)) {
             return FALSE;
         }
         $incRes = FinanceWallet::inc(

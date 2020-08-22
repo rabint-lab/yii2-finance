@@ -28,8 +28,6 @@ $this->context->layout = "@themeLayouts/full";
                         <?= Html::encode($this->title) ?>
                     </h3>
                     <div class="block-action float-left">
-                        <?= Html::a(Yii::t('rabint', 'Create Finance Transactions'), ['create'], ['class' => 'btn btn-info btn-sm  btn-noborder']) ?>
-                        <?= Html::a(Yii::t('rabint', 'Update'), ['update', 'id' => $model->id], ['class' => 'btn btn-success btn-sm  btn-noborder']) ?>
                         <?= Html::a(Yii::t('rabint', 'Delete'), ['delete', 'id' => $model->id], [
                             'class' => 'btn btn-danger btn-sm btn-noborder',
                             'data' => [

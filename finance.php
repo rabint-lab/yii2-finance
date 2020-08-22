@@ -2,6 +2,7 @@
 
 namespace rabint\finance;
 
+use rabint\finance\addons\WalletGateway;
 use Yii;
 use rabint\finance\models\FinanceTransactions;
 use rabint\finance\models\FinanceWallet;
@@ -31,7 +32,8 @@ class finance extends \yii\base\Module
         return [
             'label' => Yii::t('rabint', 'مالی'),
             'url' => '#',
-            'icon' => '<i class="fas fa-credit-card"></i>',
+            'visible' => \rabint\helpers\user::can('manager'),
+            'icon' => '<i class="fa fa-credit-card"></i>',
             'options' => ['class' => 'treeview'],
             'items' => [
                 [
@@ -59,35 +61,36 @@ class finance extends \yii\base\Module
         ];
     }
 
-    public static function dashboardMenu_()
+    public static function dashboardMenu()
     {
+        $cash = \rabint\finance\models\FinanceWallet::cash(\rabint\helpers\user::id());
         return [
             'label' => Yii::t('rabint', 'مالی'),
             'url' => '#',
-            'icon' => '<i class="fas fa-credit-card"></i>',
+            'icon' => '<i class="fa fa-credit-card"></i>',
             'options' => ['class' => 'treeview'],
-            'hit' => \Yii::t('rabint', 'این بخش مربوط به مدیریت مالی پروفایل شما می باشد'),
+            'hit' => \Yii::t('app','موجودی حساب شما: '). number_format($cash). Yii::t('app', 'ریال'),
             'items' => [
+//                [
+//                    'label' => Yii::t('rabint', 'صورتحساب  ها'),
+//                    'url' => ['/finance/transaction'],
+//                    'icon' => '<i class="far fa-circle"></i>',
+//                ],
                 [
-                    'label' => Yii::t('rabint', 'صورتحساب  ها'),
-                    'url' => ['/finance/transaction'],
+                    'label' => Yii::t('rabint', 'سوابق مالی'),
+                    'url' => ['/finance/panel/wallet'],
                     'icon' => '<i class="far fa-circle"></i>',
                 ],
                 [
-                    'label' => Yii::t('rabint', 'تراکنش ها'),
-                    'url' => ['/finance/admin/wallet'],
+                    'label' => Yii::t('rabint', 'شارژ حساب'),
+                    'url' => ['/finance/panel/charge'],
                     'icon' => '<i class="far fa-circle"></i>',
                 ],
-                [
-                    'label' => Yii::t('rabint', 'افزودن و کاهش وجه'),
-                    'url' => ['/finance/admin/change-wallet'],
-                    'icon' => '<i class="far fa-circle"></i>',
-                ],
-                [
-                    'label' => Yii::t('rabint', 'حواله های ثبت شده'),
-                    'url' => ['/finance/admin-draft'],
-                    'icon' => '<i class="far fa-circle"></i>',
-                ],
+//                [
+//                    'label' => Yii::t('rabint', 'حواله های ثبت شده'),
+//                    'url' => ['/finance/admin-draft'],
+//                    'icon' => '<i class="far fa-circle"></i>',
+//                ],
             ]
         ];
     }
@@ -108,8 +111,12 @@ class finance extends \yii\base\Module
             'description' => '',
             'forcePay' => false,
             'showFacture' => false,
-            'settleCallback'=>[],
+            'settleCallback' => [],
         ], $args);
+
+        if ($args['forcePay']) {
+            $args['showFacture'] = false;
+        }
         $_SESSION['finance']['pay_status'] = FinanceTransactions::TRANSACTION_SKIPPED;
 
         if (
@@ -131,6 +138,9 @@ class finance extends \yii\base\Module
         $transaction->created_at = time();
         $transaction->transactioner = $user_id;
         $transaction->amount = $args['amount'];
+        if (Config::TAX_PERCENT) {
+            $transaction->amount = $args['amount'] = $transaction->amount + ($transaction->amount * Config::TAX_PERCENT / 100);
+        }
         $transaction->status = FinanceTransactions::TRANSACTION_SKIPPED;
         $transaction->gateway = -1;
         $transaction->gateway_reciept = NULL;
@@ -147,7 +157,9 @@ class finance extends \yii\base\Module
         /**
          * check must use whalet ?
          */
+
         if (
+            FinanceTransactions::AUTO_PAY_BY_WALLET and
             $user_id > 0 and
             $walletCredit >= $args['amount'] and
             FinanceTransactions::ALLOW_USE_WALLET and (!$args['forcePay'])
@@ -155,61 +167,47 @@ class finance extends \yii\base\Module
             /**
              * using walet
              */
-            $transaction->status = FinanceTransactions::TRANSACTION_COMPLETED;
-            $transaction->gateway = 0;
-            if (!$transaction->save()) {
-                return FALSE;
-            }
-            $_SESSION['finance']['id'] = $transaction->id;
-            /* pay with wallet -------------------------------------- */
-            //            FinanceWallet::dec(
-            //                    $transaction->transactioner, $transaction->amount, $transaction->transactioner, $transaction->transactioner_ip, 'پرداخت با کیف پول', ['transaction_id' => $transaction->id]
-            //            );
-            $balancingRes = FinanceWallet::balancingPay(
-                $transaction->transactioner,
-                $args['additional_rows'],
-                $transaction->transactioner,
-                $transaction->transactioner_ip
-            );
-            $_SESSION['finance']['pay_status'] = FinanceTransactions::TRANSACTION_COMPLETED;
-            $_SESSION['finance']['transactionID'] = $transaction->id;
-            /* ------------------------------------------------------ */
-            $returnUrl = $transaction->return_url;
-            //            if (strpos($returnUrl, '?') !== FALSE) {
-            //                $returnUrl .='&tid=' . $transaction->id;
-            //            } else {
-            //                $returnUrl .='?tid=' . $transaction->id;
-            //            }
-            //            die('SS.'.$returnUrl);
-            return redirect($returnUrl);
-        } else {
-            if ($args['showFacture'] or FinanceTransactions::GATEWAY_SELECT_METHOD == 'manual') {
-                $transaction->status = FinanceTransactions::TRANSACTION_PENDING;
-                if (!$transaction->save(false)) {
-                    return FALSE;
-                }
-                \rabint\helpers\uri::redirect(['/finance/transaction/view', 'id' => $transaction->id]);
-                return;
-            } else {
-                $selectedGateway = reset(FinanceTransactions::$paymentGateways);
-            }
+            $selectedGateway = WalletGateway::class;
+
+            $callbackUrl = \yii\helpers\Url::to(['/finance/default/afterpay', 'tid' => $transaction->id, 'token' => $transaction->token], TRUE);
+
             $transaction->status = FinanceTransactions::TRANSACTION_INPROCESS;
-            $transaction->gateway = key(FinanceTransactions::$paymentGateways);
+            $transaction->gateway = 0;
+            if ($model->save(false)) {
+                $gatewayClass = new $selectedGateway;
+                $error = $gatewayClass->startPay($model->id, $model->amount, $callbackUrl);
+                if ($error == $gatewayClass->gatewaySuccessStatus) {
+                    return TRUE;
+                }
+            }
+        }
+
+        if (!$args['forcePay'] && ($args['showFacture'] or FinanceTransactions::GATEWAY_SELECT_METHOD == 'manual')) {
+            $transaction->status = FinanceTransactions::TRANSACTION_PENDING;
             if (!$transaction->save(false)) {
                 return FALSE;
             }
+            \rabint\helpers\uri::redirect(['/finance/transaction/view', 'id' => $transaction->id]);
+            return;
+        } else {
+            $selectedGateway = FinanceTransactions::paymentGateways()[FinanceTransactions::$defaultPaymentGatewayId];
+        }
+        $transaction->status = FinanceTransactions::TRANSACTION_INPROCESS;
+        $transaction->gateway = FinanceTransactions::$defaultPaymentGatewayId;
+        if (!$transaction->save(false)) {
+            return FALSE;
+        }
 
-            $gateway = new $selectedGateway['class'];
-            $callbackUrl = \yii\helpers\Url::to(['/finance/default/afterpay', 'tid' => $transaction->id, 'token' => $transaction->token], TRUE);
-            $error = $gateway->startPay($transaction->id, $args['amount'], $callbackUrl);
-            if ($error == $gateway->gatewaySuccessStatus) {
-                return TRUE;
-            } else {
-                if (isset($gateway->messages[$error])) {
-                    Yii::$app->session->setFlash('warning', $gateway->messages[$error]);
-                }
-                return FALSE;
+        $gateway = new $selectedGateway['class'];
+        $callbackUrl = \yii\helpers\Url::to(['/finance/default/afterpay', 'tid' => $transaction->id, 'token' => $transaction->token], TRUE);
+        $error = $gateway->startPay($transaction->id, $args['amount'], $callbackUrl);
+        if ($error == $gateway->gatewaySuccessStatus) {
+            return TRUE;
+        } else {
+            if (isset($gateway->messages[$error])) {
+                Yii::$app->session->setFlash('warning', $gateway->messages[$error]);
             }
+            return FALSE;
         }
     }
 
@@ -220,7 +218,7 @@ class finance extends \yii\base\Module
         $model = FinanceTransactions::findOne($tid);
         if (empty($model))
             return FALSE;
-        $status = (object) [
+        $status = (object)[
             'amount' => $model->amount,
             'status' => $model->status,
             'trackingCode' => $model->gateway_reciept,
@@ -229,14 +227,15 @@ class finance extends \yii\base\Module
         ];
         return $status;
     }
+
     public static function getTransactionStatusByReciept($rid)
     {
         $model = FinanceTransactions::findOne([
-            'internal_reciept'=>$rid
+            'internal_reciept' => $rid
         ]);
         if (empty($model))
             return FALSE;
-        $status = (object) [
+        $status = (object)[
             'amount' => $model->amount,
             'status' => $model->status,
             'trackingCode' => $model->gateway_reciept,
@@ -263,7 +262,7 @@ class finance extends \yii\base\Module
             unset($_SESSION['finance']);
         }
         /* ------------------------------------------------------ */
-        $status = (object) [
+        $status = (object)[
             'transactionId' => $model->id,
             'amount' => $model->amount,
             'status' => $model->status,
@@ -288,7 +287,7 @@ class finance extends \yii\base\Module
 
     public static function getCurrentCurrencyTitle()
     {
-        
+
         return static::currencies()[static::$CURRENT_CURRENCY]['title'];
     }
 
@@ -300,8 +299,8 @@ class finance extends \yii\base\Module
      * @param [type] $currency
      * @return void
      */
-    public static function numberToCurrency($number,$currency = null, $addPostFix = true)
+    public static function numberToCurrency($number, $currency = null, $addPostFix = true)
     {
-        return number_format($number) . ' ' .  \Yii::t('rabint', 'تومان');
+        return number_format($number) . ' ' . \Yii::t('rabint', 'تومان');
     }
 }
