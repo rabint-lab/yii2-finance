@@ -1,12 +1,10 @@
 <?php
 
-use yii\helpers\Html;
-use yii\helpers\Form;
-use yii\widgets\DetailView;
 use rabint\finance\Config;
-use function GuzzleHttp\json_decode;
-use rabint\finance\finance;
+use yii\helpers\Form;
+use yii\helpers\Html;
 use yii\widgets\ActiveForm;
+use function GuzzleHttp\json_decode;
 
 /* @var $this yii\web\View */
 /* @var $model rabint\finance\models\FinanceTransactions */
@@ -35,7 +33,7 @@ $this->params['breadcrumbs'][] = $this->title;
             <div class="col facture_val">
                 <span class="title"> <?= \Yii::t('rabint', 'مبلغ قابل پرداخت'); ?>: </span>
                 <td>
-                    <?= \rabint\helpers\currency::numberToCurrency($model->amount) ?>
+                    <?= \rabint\helpers\currency::numberToCurrency($model->amount,null,true) ?>
                     <?=\rabint\helpers\currency::title() ?>
                 </td>
             </div>
@@ -52,8 +50,8 @@ $this->params['breadcrumbs'][] = $this->title;
                         <th><?= \Yii::t('rabint', 'ردیف'); ?></th>
                         <th><?= \Yii::t('rabint', 'شرح'); ?></th>
                         <th><?= \Yii::t('rabint', 'تعداد'); ?></th>
-                        <th><?= \Yii::t('rabint', 'مبلغ واحد'); ?></th>
-                        <th><?= \Yii::t('rabint', 'مبلغ کل'); ?></th>
+                        <th><?= \Yii::t('rabint', 'مبلغ واحد'); ?> (<?=\rabint\helpers\currency::title() ?>)</th>
+                        <th><?= \Yii::t('rabint', 'مبلغ کل'); ?> (<?=\rabint\helpers\currency::title() ?>)</th>
                     </thead>
                     <tbody>
                         <?php
@@ -64,8 +62,8 @@ $this->params['breadcrumbs'][] = $this->title;
                                 <td><?= $k + 1; ?></td>
                                 <td><?= $row[0] ?></td>
                                 <td><?= $row[1] ?></td>
-                                <td><?= \rabint\helpers\currency::numberToCurrency($row[2]) ?> </td>
-                                <td><?= $row[3] ?></td>
+                                <td><?= \rabint\helpers\currency::numberToCurrency($row[2],null,true) ?> </td>
+                                <td><?= \rabint\helpers\currency::numberToCurrency($row[3],null,true) ?> </td>
                             </tr>
                         <?php
                         }
@@ -74,7 +72,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     <tfoot>
                         <tr>
                             <td colspan="2" style="text-align:left;"><span><?= \Yii::t('rabint', 'مبلغ قابل پرداخت'); ?></span></td>
-                            <td><?= \rabint\helpers\currency::numberToCurrency($model->amount) ?> <?=\rabint\helpers\currency::title() ?> </td>
+                            <td colspan="3"><?= \rabint\helpers\currency::numberToCurrency($model->amount,null,true) ?> <?=\rabint\helpers\currency::title() ?> </td>
                         </tr>
                     </tfoot>
                 </table>
@@ -99,7 +97,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         <h5 class="card-title">
                             <i class="fas fa-user"></i> <?= \Yii::t('rabint', 'انتخاب درگاه پرداخت'); ?>
                         </h5>
-                        <ul class="gateways">
+                        <ul class="gateways" style="list-style: none">
                             <?php
                             $cash = \rabint\finance\models\FinanceWallet::cash(\rabint\helpers\user::id());
                             if($model->amount<=$cash){
@@ -156,23 +154,3 @@ $this->params['breadcrumbs'][] = $this->title;
 
 </div>
 
-
-<?php /*= DetailView::widget([
-        'model' => $model,
-        'attributes' => [
-            'id',
-            'created_at',
-            'transactioner',
-            'gateway',
-            'gateway_reciept',
-            'gateway_meta',
-            'transactioner_ip',
-            'internal_reciept',
-            'token',
-            'return_url:url',
-            'additional_rows:ntext',
-            'metadata',
-        ],
-    ]) */ ?>
-
-</div>

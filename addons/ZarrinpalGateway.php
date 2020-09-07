@@ -7,16 +7,19 @@ use Yii;
 
 class ZarrinpalGateway extends GatewayAbstract {
 
+    const URL='https://www.zarinpal.com/pg/services/WebGate/wsdl';
     const amountFactor=0.1;
 
     public function __construct() {
         $this->code = 3;
         $this->slug = 'zarrinpal';
         $this->title = Yii::t('rabint', 'درگاه پرداخت زرین‌پال');
-        $this->config = [
-            'url' => 'https://www.zarinpal.com/pg/services/WebGate/wsdl',
-            'merchantid' => '5a98f41f-1672-496e-8762-db9173f04ffb',
-        ];
+//        $this->config = [
+//            'url' => 'https://www.zarinpal.com/pg/services/WebGate/wsdl',
+//            'merchantid' => '5a98f41f-1672-496e-8762-db9173f04ffb',
+//        ];
+
+        $this->config = config('SERVICE.finance.gateways_config.zarrinpal');
         $this->gatewaySuccessStatus = 100;
         $this->messages = [
             1001 => Yii::t('rabint', 'خطا در اتصال به درگاه بانک'),
@@ -49,8 +52,8 @@ class ZarrinpalGateway extends GatewayAbstract {
         $amount *= self::amountFactor;
 
         try {
-            //$client = new \SoapClient($this->config['url']);
-            $client = new nusoap_client($this->config['url'], 'wsdl');
+            //$client = new \SoapClient(self::URL);
+            $client = new nusoap_client(self::URL, 'wsdl');
             $client->soap_defencoding = 'UTF-8';
             $client->decode_utf8 = FALSE;
         } catch (\Exception $exception) {
@@ -117,8 +120,8 @@ class ZarrinpalGateway extends GatewayAbstract {
     public function payStatus($orderId, $gatewayData = []) {
 //        \Yii::warning('pay_get:' . print_r($_GET, TRUE) . ' - pay_post:' . print_r($_POST, TRUE), 'payCheck');
         try {
-            //$client = new \SoapClient($this->config['url']);
-            $client = new nusoap_client($this->config['url'], 'wsdl');
+            //$client = new \SoapClient(self::URL);
+            $client = new nusoap_client(self::URL, 'wsdl');
             $client->soap_defencoding = 'UTF-8';
             $client->decode_utf8 = FALSE;
         } catch (\Exception $exception) {

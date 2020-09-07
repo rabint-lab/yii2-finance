@@ -3,9 +3,10 @@
 namespace rabint\finance;
 
 use rabint\finance\addons\WalletGateway;
-use Yii;
 use rabint\finance\models\FinanceTransactions;
 use rabint\finance\models\FinanceWallet;
+use Yii;
+use yii\base\InvalidConfigException;
 
 class finance extends \yii\base\Module
 {
@@ -114,6 +115,10 @@ class finance extends \yii\base\Module
             'settleCallback' => [],
         ], $args);
 
+        if (!empty($args['additional_rows']) && !FinanceWallet::validateAdditionalRows($args['additional_rows'])){
+            var_dump($args['additional_rows']);
+            throw new InvalidConfigException('additional rows config error');
+        }
         if ($args['forcePay']) {
             $args['showFacture'] = false;
         }
@@ -149,6 +154,7 @@ class finance extends \yii\base\Module
         $transaction->internal_reciept = $args['internal_reciept'];
         $transaction->token = md5(uniqid('FinanceTransactions', TRUE));
         $transaction->return_url = $args['return_url'];
+        $transaction->internal_meta = $args['internal_meta'];
         $transaction->additional_rows = json_encode($args['additional_rows']);
         $transaction->metadata = json_encode($args['metadata']);
         $transaction->settle_callback_function = json_encode($args['settleCallback']);
@@ -190,10 +196,11 @@ class finance extends \yii\base\Module
             \rabint\helpers\uri::redirect(['/finance/transaction/view', 'id' => $transaction->id]);
             return;
         } else {
-            $selectedGateway = FinanceTransactions::paymentGateways()[FinanceTransactions::$defaultPaymentGatewayId];
+            $defaultGatewayId = FinanceTransactions::defaultPaymentGatewayId();
+            $selectedGateway = FinanceTransactions::paymentGateways()[$defaultGatewayId];
         }
         $transaction->status = FinanceTransactions::TRANSACTION_INPROCESS;
-        $transaction->gateway = FinanceTransactions::$defaultPaymentGatewayId;
+        $transaction->gateway = FinanceTransactions::defaultPaymentGatewayId();
         if (!$transaction->save(false)) {
             return FALSE;
         }
@@ -230,19 +237,21 @@ class finance extends \yii\base\Module
 
     public static function getTransactionStatusByReciept($rid)
     {
-        $model = FinanceTransactions::findOne([
+        return FinanceTransactions::findOne([
             'internal_reciept' => $rid
         ]);
-        if (empty($model))
-            return FALSE;
-        $status = (object)[
-            'amount' => $model->amount,
-            'status' => $model->status,
-            'trackingCode' => $model->gateway_reciept,
-            'internalReciept' => $model->internal_reciept,
-            'transactioner' => $model->transactioner,
-        ];
-        return $status;
+
+//        if ($model==null){
+//            return FALSE;
+//        }
+//        return $model;
+//        $status = (object)[
+//            'amount' => $model->amount,
+//            'status' => $model->status,
+//            'trackingCode' => $model->gateway_reciept,
+//            'internalReciept' => $model->internal_reciept,
+//            'transactioner' => $model->transactioner,
+//        ];
     }
 
     public static function getLatestTransactionStatus($removeSession = TRUE)

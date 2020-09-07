@@ -3,8 +3,6 @@
 namespace rabint\finance\models;
 
 use Yii;
-use common\models\User;
-use rabint\finance\models\FinanceTransactions;
 
 /**
  * This is the model class for table "finance_wallet".
@@ -62,7 +60,8 @@ class FinanceWallet extends \yii\db\ActiveRecord {
      * @return int
      */
     static function credit($user_id) {
-        $credit = \rabint\helpers\user::profile($user_id)->credit;
+        $profile = \rabint\helpers\user::profile($user_id);
+        $credit = $profile->credit??0;
         $userCash = self::cash($user_id);
         return $credit + $userCash;
     }
@@ -112,6 +111,24 @@ class FinanceWallet extends \yii\db\ActiveRecord {
         return FALSE;
     }
 
+    static function validateAdditionalRows($aditionalData) {
+        $err=0;
+        foreach ((array) $aditionalData as $row) {
+            if(!isset($row['amount'])){
+                $err++;
+            }
+            if(!isset($row['description'])){
+                $err++;
+            }
+            if(!isset($row['user_id'])){
+                $err++;
+            }
+        }
+        if($err){
+            return false;
+        }
+        return true;
+    }
     static function balancingPay($user_id, $aditionalData, $transactioner = '', $transactioner_ip = '') {
         $allRows = [];
         foreach ((array) $aditionalData as $row) {
@@ -129,6 +146,7 @@ class FinanceWallet extends \yii\db\ActiveRecord {
                 json_encode($row['metadata']),
             ];
         }
+
         if(empty($allRows)){
             return false;
         }

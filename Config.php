@@ -3,6 +3,7 @@
 namespace rabint\finance;
 
 use Yii;
+use yii\base\InvalidConfigException;
 
 /**
  * This is the model class for table "finance_transactions".
@@ -20,6 +21,7 @@ use Yii;
  * @property string $token
  * @property string $return_url
  * @property string $additional_rows
+ * @property string $internal_meta
  * @property string $metadata
  */
 class Config extends \yii\db\ActiveRecord
@@ -41,13 +43,12 @@ class Config extends \yii\db\ActiveRecord
 
 
     var $displayTitle = 'مدیریت مالی';
-    public static $defaultPaymentGatewayId = 4;
-    public static $paymentGateways = [
-        //1 => ['title' => 'درگاه زرین پال', 'class' => '\rabint\finance\addons\ZarrinpalGateway'],
-        // 2 => ['title'=>'درگاه تست','class' => '\rabint\finance\addons\TestGateway'],
-        4 => ['title'=>'درگاه پارسیان','class' => '\rabint\finance\addons\ParsianGateway'],
-        // 3 => ['title'=>'درگاه ملت','class' => '\rabint\finance\addons\MellatGateway']
-    ];
+//    public static $paymentGateways = [
+//        //1 => ['title' => 'درگاه زرین پال', 'class' => '\rabint\finance\addons\ZarrinpalGateway'],
+//        // 2 => ['title'=>'درگاه تست','class' => '\rabint\finance\addons\TestGateway'],
+//        4 => ['title'=>'درگاه پارسیان','class' => '\rabint\finance\addons\ParsianGateway'],
+//        // 3 => ['title'=>'درگاه ملت','class' => '\rabint\finance\addons\MellatGateway']
+//    ];
     public static $credit = 0;
 
     /**
@@ -69,13 +70,20 @@ class Config extends \yii\db\ActiveRecord
         ];
     }
 
+    public static function defaultPaymentGatewayId(){
+        return config('SERVICE.finance.defaultGatewayId',1);
+    }
     public static function paymentGateways()
     {
-        $paymentGateways = static::$paymentGateways;
-        if (USER_CAN_DEBUG) {
-            //$paymentGateways[2] = ['title' => 'درگاه تست', 'class' => '\rabint\finance\addons\TestGateway'];
+        //$gateways = static::$paymentGateways;
+        $gateways = config('SERVICE.finance.gateways',false);
+        if(empty($gateways)){
+            throw new InvalidConfigException('لطفا تنظیمات درگاه های بانکی را در بخش انوایرومنت وبسایت انجام دهید');
         }
-        return $paymentGateways;
+        if (USER_CAN_DEBUG) {
+            $paymentGateways[1] = ['title' => 'درگاه تست', 'class' => '\rabint\finance\addons\TestGateway'];
+        }
+        return $gateways;
     }
 
 
@@ -87,7 +95,7 @@ class Config extends \yii\db\ActiveRecord
         return [
             [['created_at', 'transactioner', 'amount', 'status', 'gateway', 'transactioner_ip', 'internal_reciept', 'token', 'return_url', 'additional_rows'], 'required'],
             [['created_at', 'transactioner', 'amount', 'status', 'gateway'], 'integer'],
-            [['additional_rows', 'metadata','settle_callback_function','gateway_meta'], 'string'],
+            [['additional_rows', 'metadata','settle_callback_function','gateway_meta','internal_meta'], 'string'],
             [['gateway_reciept', 'transactioner_ip', 'internal_reciept', 'token', 'return_url'], 'string', 'max' => 255]
         ];
     }
@@ -111,6 +119,7 @@ class Config extends \yii\db\ActiveRecord
             'token' => Yii::t('rabint', 'توکن'),
             'return_url' => Yii::t('rabint', 'لینک بازگشت'),
             'additional_rows' => Yii::t('rabint', 'تراکنش های مرتبط'),
+            'internal_meta' => Yii::t('rabint', 'متادیتای داخلی'),
             'metadata' => Yii::t('rabint', 'اطلاعات متا'),
         ];
     }

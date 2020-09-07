@@ -21,9 +21,11 @@ class m190508_093200_create_table_finance_transactions extends Migration
             'gateway_reciept' => $this->string(255)->comment('رسید درگاه'),
             'gateway_meta' => $this->string(255)->comment('اطلاعات درگاه'),
             'transactioner_ip' => $this->string(255)->notNull()->comment('آی پی انجام دهنده'),
-            'internal_reciept' => $this->string(255)->notNull()->comment('سفره داخلی'),
+            'internal_reciept' => $this->string(255)->notNull()->comment('کدرهگیری داخلی'),
+            'settle_callback_function' => $this->text()->comment('تابع تایید پرداخت'),
             'token' => $this->string(255)->notNull()->comment('کلید'),
             'return_url' => $this->string(255)->notNull()->comment('لینک بازگشت'),
+            'internal_meta' => $this->text()->comment('متادیتای داخلی'),
             'additional_rows' => $this->text()->notNull()->comment('اطلاعات فاکتور'),
             'metadata' => $this->string(255)->comment('متادیتا'),
         ], $tableOptions);

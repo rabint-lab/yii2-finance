@@ -52,7 +52,7 @@ class FinanceTransactions extends Config
             ['transaction_id' => $model->id]
         );
         if ($incRes) {
-            FinanceWallet::balancingPay(
+            $res = FinanceWallet::balancingPay(
                 $model->transactioner,
                 json_decode($model->additional_rows, TRUE),
                 $model->transactioner,
