@@ -7,6 +7,7 @@ use Yii;
 
 class ZarrinpalGateway extends GatewayAbstract {
 
+    //const URL='https://sandbox.zarinpal.com/pg/services/WebGate/wsdl';
     const URL='https://www.zarinpal.com/pg/services/WebGate/wsdl';
     const amountFactor=0.1;
 
@@ -118,6 +119,8 @@ class ZarrinpalGateway extends GatewayAbstract {
 
     //
     public function payStatus($orderId, $gatewayData = []) {
+        // wiat for zarrin pal inner satteling
+        sleep(5);
 //        \Yii::warning('pay_get:' . print_r($_GET, TRUE) . ' - pay_post:' . print_r($_POST, TRUE), 'payCheck');
         try {
             //$client = new \SoapClient(self::URL);
