@@ -81,7 +81,7 @@ class Config extends \yii\db\ActiveRecord
             throw new InvalidConfigException('لطفا تنظیمات درگاه های بانکی را در بخش انوایرومنت وبسایت انجام دهید');
         }
         if (USER_CAN_DEBUG) {
-            $paymentGateways[1] = ['title' => 'درگاه تست', 'class' => '\rabint\finance\addons\TestGateway'];
+            $gateways[] = ['title' => 'درگاه تست', 'class' => '\rabint\finance\addons\TestGateway'];
         }
         return $gateways;
     }
