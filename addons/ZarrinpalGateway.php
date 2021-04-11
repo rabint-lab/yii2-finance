@@ -142,9 +142,8 @@ class ZarrinpalGateway extends GatewayAbstract {
             $params = [
                 'MerchantID' => $this->config['merchantid'],
                 'Authority' => $_GET['Authority'],
-                'Amount' => $transaction->amount,
+                'Amount' => ($transaction->amount*self::amountFactor),
             ];
-
             try {
                 $result = (array) $client->call('PaymentVerification',$params);
             } catch (\Exception $exception) {
