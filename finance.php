@@ -65,35 +65,39 @@ class finance extends \yii\base\Module
     public static function dashboardMenu()
     {
         $cash = \rabint\finance\models\FinanceWallet::cash(\rabint\helpers\user::id());
-        return [
-            'label' => Yii::t('rabint', 'مالی'),
-            'url' => '#',
-            'icon' => '<i class="fa fa-credit-card"></i>',
-            'options' => ['class' => 'treeview'],
-            'hit' => \Yii::t('app','موجودی حساب شما: '). number_format($cash). Yii::t('app', 'ریال'),
-            'items' => [
-//                [
-//                    'label' => Yii::t('rabint', 'صورتحساب  ها'),
-//                    'url' => ['/finance/transaction'],
-//                    'icon' => '<i class="far fa-circle"></i>',
-//                ],
-                [
-                    'label' => Yii::t('rabint', 'سوابق مالی'),
-                    'url' => ['/finance/panel/wallet'],
-                    'icon' => '<i class="far fa-circle"></i>',
-                ],
-                [
-                    'label' => Yii::t('rabint', 'شارژ حساب'),
-                    'url' => ['/finance/panel/charge'],
-                    'icon' => '<i class="far fa-circle"></i>',
-                ],
-//                [
-//                    'label' => Yii::t('rabint', 'حواله های ثبت شده'),
-//                    'url' => ['/finance/admin-draft'],
-//                    'icon' => '<i class="far fa-circle"></i>',
-//                ],
-            ]
-        ];
+        if(config('SERVICE.finance.showDashboardMenu',true)){
+            return [
+                'label' => Yii::t('rabint', 'مالی'),
+                'url' => '#',
+                'icon' => '<i class="fa fa-credit-card"></i>',
+                'options' => ['class' => 'treeview'],
+                'hit' => \Yii::t('app','موجودی حساب شما: '). number_format($cash). Yii::t('app', 'ریال'),
+                'items' => [
+    //                [
+    //                    'label' => Yii::t('rabint', 'صورتحساب  ها'),
+    //                    'url' => ['/finance/transaction'],
+    //                    'icon' => '<i class="far fa-circle"></i>',
+    //                ],
+                    [
+                        'label' => Yii::t('rabint', 'سوابق مالی'),
+                        'url' => ['/finance/panel/wallet'],
+                        'icon' => '<i class="far fa-circle"></i>',
+                    ],
+                    [
+                        'label' => Yii::t('rabint', 'شارژ حساب'),
+                        'url' => ['/finance/panel/charge'],
+                        'icon' => '<i class="far fa-circle"></i>',
+                    ],
+    //                [
+    //                    'label' => Yii::t('rabint', 'حواله های ثبت شده'),
+    //                    'url' => ['/finance/admin-draft'],
+    //                    'icon' => '<i class="far fa-circle"></i>',
+    //                ],
+                ]
+            ];
+        }else{
+            return [];
+        }
     }
 
     /* =================================================================== */
