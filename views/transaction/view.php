@@ -144,10 +144,17 @@ $this->params['breadcrumbs'][] = $this->title;
     <div class="spacer"></div>
     <div class="pay">
         <div class="row">
-            <div class="col-md-4 offset-md-4">
+            <div class="col-md-4 offset-md-2">
                 <div class="center">
-                    <button class="btn btn-success m-auto btn-lg" type="submit">
+                    <button class="btn btn-success m-auto" type="submit">
                         <?= \Yii::t('rabint', 'پرداخت'); ?>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="center">
+                    <button class="btn btn-warning m-auto" type="submit">
+                        <?= \Yii::t('rabint', 'بازگشت'); ?>
                     </button>
                 </div>
             </div>
