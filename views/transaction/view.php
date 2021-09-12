@@ -74,8 +74,12 @@ $this->params['breadcrumbs'][] = $this->title;
                     </tbody>
                     <tfoot>
                         <tr>
+                            <td colspan="2" style="text-align:left;"><?= \app\modules\coupon\widget\CouponWidget::widget(['amount'=>$model->amount]) ?></td>
+                            <td colspan="3" class="show-coupon"><?= \rabint\helpers\currency::numberToCurrency($discount*-1, null, true) ?> </td>
+                        </tr>
+                        <tr>
                             <td colspan="2" style="text-align:left;"><span><?= \Yii::t('rabint', 'مبلغ قابل پرداخت'); ?></span></td>
-                            <td colspan="3"><?= \rabint\helpers\currency::numberToCurrency($model->amount, null, true) ?> <?= \rabint\helpers\currency::title() ?> </td>
+                            <td colspan="3"><?= \rabint\helpers\currency::numberToCurrency($model->amount-$discount, null, true) ?> <?= \rabint\helpers\currency::title() ?> </td>
                         </tr>
                     </tfoot>
                 </table>
@@ -153,9 +157,9 @@ $this->params['breadcrumbs'][] = $this->title;
             </div>
             <div class="col-md-4">
                 <div class="center">
-                    <button class="btn btn-warning m-auto" type="submit">
+                    <a class="btn btn-warning m-auto" href="<?= Yii::$app->request->referrer ?>">
                         <?= \Yii::t('rabint', 'بازگشت'); ?>
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>

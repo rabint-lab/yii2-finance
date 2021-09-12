@@ -2,6 +2,7 @@
 
 namespace rabint\finance\controllers;
 
+use app\modules\coupon\services\CouponService;
 use rabint\finance\addons\WalletGateway;
 use rabint\finance\models\FinanceWallet;
 use Yii;
@@ -60,6 +61,7 @@ class TransactionController extends \rabint\controllers\PanelController
         if ($model->transactioner != \rabint\helpers\user::id()) {
             throw new ForbiddenHttpException(\Yii::t('rabint', 'این صورتحساب مربوط به شما نمی باشد'));
         }
+        $discount = isset($_GET['coupon'])?\app\modules\coupon\services\CouponService::factory()->getDiscount($_GET['coupon'],Yii::$app->user->id,$model->amount):0;
         if (Yii::$app->request->isPost) {
             $doPay = Yii::$app->request->post("do_pay");
             $gateway = Yii::$app->request->post("gateway");
@@ -80,7 +82,9 @@ class TransactionController extends \rabint\controllers\PanelController
             $model->gateway = $gateway;
             if ($model->save(false)) {
                 $gatewayClass = new $selectedGateway;
-                $error = $gatewayClass->startPay($model->id, $model->amount, $callbackUrl);
+                if(isset($_GET['coupon']))
+                    CouponService::factory()->useCoupon($_GET['coupon'],Yii::$app->user->id,Yii::$app->request->userIP,Yii::$app->request->userAgent,$model->id,$model->amount);
+                $error = $gatewayClass->startPay($model->id, $model->amount-$discount, $callbackUrl);
                 if ($error == $gatewayClass->gatewaySuccessStatus) {
                     return TRUE;
                 } else {
@@ -105,6 +109,7 @@ class TransactionController extends \rabint\controllers\PanelController
         }
         return $this->render('view', [
             'model' => $model,
+            'discount'=> $discount
         ]);
     }
 
