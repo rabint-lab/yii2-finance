@@ -74,7 +74,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="2" style="text-align:left;"><?= \app\modules\coupon\widget\CouponWidget::widget(['amount'=>$model->amount]) ?></td>
+                            <td colspan="2" style="text-align:left;"><?= \app\modules\coupon\widget\CouponWidget::widget(['transaction_id'=>$model->id]) ?></td>
                             <td colspan="3" class="show-coupon"> </td>
                         </tr>
                         <tr>

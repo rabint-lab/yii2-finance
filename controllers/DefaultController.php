@@ -88,7 +88,6 @@ class DefaultController extends \rabint\controllers\DefaultController
         if (isset($gateway->messages[$payResult])) {
             if($payResult == $gateway->gatewaySuccessStatus){
                 $flashType = 'success';
-                \app\modules\coupon\services\CouponService::factory()->useCoupon($coupon,Yii::$app->user->id,Yii::$app->request->userIP,Yii::$app->request->userAgent,$transaction->id,$transaction->amount);
             }else{
                 $flashType = 'warning';
             }
