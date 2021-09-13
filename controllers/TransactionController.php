@@ -58,12 +58,18 @@ class TransactionController extends \rabint\controllers\PanelController
     public function actionView($id)
     {
         $get=\Yii::$app->request->get();
+        $coupon = $get['coupon']??'';
+        $coupon_id = \app\modules\coupon\services\CouponService::factory()->checkCoupon($coupon,Yii::$app->user->id);
+        $discount = isset($coupon)?\app\modules\coupon\services\CouponService::factory()->getDiscount($coupon,Yii::$app->user->id,self::getAmount($this->findModel($id)->metadata,\app\modules\coupon\models\Coupon::class)):0;
+        if($discount!=0)
+            self::actionAddItem($id,\Yii::t('rabint','تخفیف'),1,\app\modules\coupon\models\Coupon::class,$discount*-1,$coupon_id);
+        if(!empty($coupon)&&$discount==0){
+            \Yii::$app->session->setFlash('warning',\Yii::t('rabint','کد تخفیف نا معتبر'));
+        }
         $model = $this->findModel($id);
         if ($model->transactioner != \rabint\helpers\user::id()) {
             throw new ForbiddenHttpException(\Yii::t('rabint', 'این صورتحساب مربوط به شما نمی باشد'));
         }
-        $coupon = $get['coupon']??'';
-        $discount = isset($coupon)?\app\modules\coupon\services\CouponService::factory()->getDiscount($coupon,Yii::$app->user->id,$model->amount):0;
         if (Yii::$app->request->isPost) {
             $doPay = Yii::$app->request->post("do_pay");
             $gateway = Yii::$app->request->post("gateway");
@@ -86,7 +92,7 @@ class TransactionController extends \rabint\controllers\PanelController
                 $gatewayClass = new $selectedGateway;
 //                if(isset($_GET['coupon']))
 //                    CouponService::factory()->useCoupon($_GET['coupon'],Yii::$app->user->id,Yii::$app->request->userIP,Yii::$app->request->userAgent,$model->id,$model->amount);
-                $error = $gatewayClass->startPay($model->id, $model->amount-$discount, $callbackUrl);
+                $error = $gatewayClass->startPay($model->id, $model->amount, $callbackUrl);
                 if ($error == $gatewayClass->gatewaySuccessStatus) {
                     return TRUE;
                 } else {
@@ -113,6 +119,53 @@ class TransactionController extends \rabint\controllers\PanelController
             'model' => $model,
             'discount'=> $discount
         ]);
+    }
+
+    /**
+     * @param $id integer
+     * @param $title string
+     * @param $count int
+     * @param $object string
+     * @param $price string
+     * @param $object_id integer
+     * @return bool
+     */
+
+    public function actionAddItem($id,$title,$count,$object,$price,$object_id){
+        $model = $this->findModel($id);
+        if(!in_array($model->status,[FinanceTransactions::TRANSACTION_INPROCESS,FinanceTransactions::TRANSACTION_PENDING]))
+            return false;
+        $meta = json_decode($model->metadata,'true');
+        $meta = array_filter($meta,function ($item)use ($object,$object_id){
+            if(isset($item[5]) && $item[5]==$object && $item[4]==$object_id){
+                return false;
+            }
+            else
+                return true;
+        });
+        array_push($meta,[$title,$count,$price,$price*$count,$object_id,$object]);
+        $model->metadata = json_encode($meta);
+        $model->amount = self::getAmount($meta);
+        return $model->save()===true?true:false;
+    }
+
+    /**
+     * @param $meta array|string
+     * @param $without array
+     * @return int
+     */
+
+    private static function getAmount($meta,$without = []){
+        if(!is_array($without))
+            $without = [$without];
+        if(!is_array($meta))
+            $meta = json_decode($meta,true);
+        $amount = 0;
+        foreach ($meta as $item){
+            if(isset($item[5])&&in_array($item[5],$without))continue;
+            $amount += $item[3];
+        }
+        return $amount;
     }
 
     /**

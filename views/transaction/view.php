@@ -75,11 +75,11 @@ $this->params['breadcrumbs'][] = $this->title;
                     <tfoot>
                         <tr>
                             <td colspan="2" style="text-align:left;"><?= \app\modules\coupon\widget\CouponWidget::widget(['amount'=>$model->amount]) ?></td>
-                            <td colspan="3" class="show-coupon"><?= \rabint\helpers\currency::numberToCurrency($discount*-1, null, true) ?> </td>
+                            <td colspan="3" class="show-coupon"> </td>
                         </tr>
                         <tr>
                             <td colspan="2" style="text-align:left;"><span><?= \Yii::t('rabint', 'مبلغ قابل پرداخت'); ?></span></td>
-                            <td colspan="3"><?= \rabint\helpers\currency::numberToCurrency($model->amount-$discount, null, true) ?> <?= \rabint\helpers\currency::title() ?> </td>
+                            <td colspan="3"><?= \rabint\helpers\currency::numberToCurrency($model->amount, null, true) ?> <?= \rabint\helpers\currency::title() ?> </td>
                         </tr>
                     </tfoot>
                 </table>
