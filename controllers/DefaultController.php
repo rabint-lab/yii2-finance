@@ -70,7 +70,7 @@ class DefaultController extends \rabint\controllers\DefaultController
         var_dump($res);
     }
 
-    public function actionAfterpay($tid, $token)
+    public function actionAfterpay($tid, $token,$coupon = null)
     {
         $transaction = FinanceTransactions::find()->where(['id' => $tid, 'token' => $token])->one();
         if ($transaction == null) {
@@ -86,7 +86,12 @@ class DefaultController extends \rabint\controllers\DefaultController
         $payResult = $gateway->afterPay($transaction);
 //        die('aaaaaaa');
         if (isset($gateway->messages[$payResult])) {
-            $flashType = ($payResult == $gateway->gatewaySuccessStatus) ? 'success' : 'warning';
+            if($payResult == $gateway->gatewaySuccessStatus){
+                $flashType = 'success';
+                \app\modules\coupon\services\CouponService::factory()->useCoupon($coupon,Yii::$app->user->id,Yii::$app->request->userIP,Yii::$app->request->userAgent,$transaction->id,$transaction->amount);
+            }else{
+                $flashType = 'warning';
+            }
             Yii::$app->getSession()->setFlash($flashType, $gateway->messages[$payResult]);
         }
         $returnUrl = $transaction->return_url;

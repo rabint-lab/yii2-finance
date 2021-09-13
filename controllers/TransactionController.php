@@ -57,11 +57,13 @@ class TransactionController extends \rabint\controllers\PanelController
      */
     public function actionView($id)
     {
+        $get=\Yii::$app->request->get();
         $model = $this->findModel($id);
         if ($model->transactioner != \rabint\helpers\user::id()) {
             throw new ForbiddenHttpException(\Yii::t('rabint', 'این صورتحساب مربوط به شما نمی باشد'));
         }
-        $discount = isset($_GET['coupon'])?\app\modules\coupon\services\CouponService::factory()->getDiscount($_GET['coupon'],Yii::$app->user->id,$model->amount):0;
+        $coupon = $get['coupon']??'';
+        $discount = isset($coupon)?\app\modules\coupon\services\CouponService::factory()->getDiscount($coupon,Yii::$app->user->id,$model->amount):0;
         if (Yii::$app->request->isPost) {
             $doPay = Yii::$app->request->post("do_pay");
             $gateway = Yii::$app->request->post("gateway");
@@ -75,15 +77,15 @@ class TransactionController extends \rabint\controllers\PanelController
                     throw new ForbiddenHttpException(\Yii::t('rabint', 'درگاه انتخابی نا معتبر است'));
                 }
                 $selectedGateway = FinanceTransactions::paymentGateways()[$gateway]['class'];
-            }
-            $callbackUrl = \yii\helpers\Url::to(['/finance/default/afterpay', 'tid' => $model->id, 'token' => $model->token], TRUE);
+            }//select gateway class
+            $callbackUrl = \yii\helpers\Url::to(['/finance/default/afterpay', 'tid' => $model->id, 'token' => $model->token,'coupon'=>$coupon], TRUE);
 
             $model->status = FinanceTransactions::TRANSACTION_INPROCESS;
             $model->gateway = $gateway;
             if ($model->save(false)) {
                 $gatewayClass = new $selectedGateway;
-                if(isset($_GET['coupon']))
-                    CouponService::factory()->useCoupon($_GET['coupon'],Yii::$app->user->id,Yii::$app->request->userIP,Yii::$app->request->userAgent,$model->id,$model->amount);
+//                if(isset($_GET['coupon']))
+//                    CouponService::factory()->useCoupon($_GET['coupon'],Yii::$app->user->id,Yii::$app->request->userIP,Yii::$app->request->userAgent,$model->id,$model->amount);
                 $error = $gatewayClass->startPay($model->id, $model->amount-$discount, $callbackUrl);
                 if ($error == $gatewayClass->gatewaySuccessStatus) {
                     return TRUE;
