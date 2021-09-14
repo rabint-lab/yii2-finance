@@ -2,7 +2,6 @@
 
 namespace rabint\finance\controllers;
 
-use app\modules\coupon\services\CouponService;
 use rabint\finance\addons\WalletGateway;
 use rabint\finance\models\FinanceWallet;
 use Yii;
@@ -74,15 +73,13 @@ class TransactionController extends \rabint\controllers\PanelController
                     throw new ForbiddenHttpException(\Yii::t('rabint', 'درگاه انتخابی نا معتبر است'));
                 }
                 $selectedGateway = FinanceTransactions::paymentGateways()[$gateway]['class'];
-            }//select gateway class
+            }
             $callbackUrl = \yii\helpers\Url::to(['/finance/default/afterpay', 'tid' => $model->id, 'token' => $model->token], TRUE);
 
             $model->status = FinanceTransactions::TRANSACTION_INPROCESS;
             $model->gateway = $gateway;
             if ($model->save(false)) {
                 $gatewayClass = new $selectedGateway;
-//                if(isset($_GET['coupon']))
-//                    CouponService::factory()->useCoupon($_GET['coupon'],Yii::$app->user->id,Yii::$app->request->userIP,Yii::$app->request->userAgent,$model->id,$model->amount);
                 $error = $gatewayClass->startPay($model->id, $model->amount, $callbackUrl);
                 if ($error == $gatewayClass->gatewaySuccessStatus) {
                     return TRUE;
@@ -110,8 +107,6 @@ class TransactionController extends \rabint\controllers\PanelController
             'model' => $model,
         ]);
     }
-
-
 
     /**
      * Finds the FinanceTransactions model based on its primary key value.
