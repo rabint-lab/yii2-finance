@@ -74,10 +74,6 @@ $this->params['breadcrumbs'][] = $this->title;
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="2" style="text-align:left;"><?= \app\modules\coupon\widget\CouponWidget::widget(['transaction_id'=>$model->id]) ?></td>
-                            <td colspan="3" class="show-coupon"> </td>
-                        </tr>
-                        <tr>
                             <td colspan="2" style="text-align:left;"><span><?= \Yii::t('rabint', 'مبلغ قابل پرداخت'); ?></span></td>
                             <td colspan="3"><?= \rabint\helpers\currency::numberToCurrency($model->amount, null, true) ?> <?= \rabint\helpers\currency::title() ?> </td>
                         </tr>
@@ -88,6 +84,22 @@ $this->params['breadcrumbs'][] = $this->title;
     </div>
 
     <div class="spacer"></div>
+    <?php if(class_exists(\app\modules\coupon\widget\CouponWidget::class)): ?>
+    <div class="facture_gateway">
+        <div class="row">
+            <div class="col offset-md-2 col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fa fa-gift"></i> <?= \Yii::t('rabint', 'افزودن کد تخفیف'); ?>
+                        </h5>
+                        <?= \app\modules\coupon\widget\CouponWidget::widget(['transaction_id'=>$model->id]) ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif;?>
 
     <div class="spacer"></div>
 

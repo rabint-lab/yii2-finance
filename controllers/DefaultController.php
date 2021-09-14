@@ -70,7 +70,7 @@ class DefaultController extends \rabint\controllers\DefaultController
         var_dump($res);
     }
 
-    public function actionAfterpay($tid, $token,$coupon = null)
+    public function actionAfterpay($tid, $token)
     {
         $transaction = FinanceTransactions::find()->where(['id' => $tid, 'token' => $token])->one();
         if ($transaction == null) {
