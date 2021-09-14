@@ -18,7 +18,8 @@
     ],
     "minimum-stability": "beta",
     "require": {
-        "rabint/base": "*"
+        "rabint/base": "*",
+      "ext-json": "*"
     },
     "autoload": {
         "psr-4": {

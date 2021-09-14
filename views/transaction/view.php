@@ -84,6 +84,22 @@ $this->params['breadcrumbs'][] = $this->title;
     </div>
 
     <div class="spacer"></div>
+    <?php if(class_exists(\app\modules\coupon\widget\CouponWidget::class)): ?>
+    <div class="facture_gateway">
+        <div class="row">
+            <div class="col offset-md-2 col-md-8">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="fa fa-gift"></i> <?= \Yii::t('rabint', 'افزودن کد تخفیف'); ?>
+                        </h5>
+                        <?= \app\modules\coupon\widget\CouponWidget::widget(['transaction_id'=>$model->id]) ?>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <?php endif;?>
 
     <div class="spacer"></div>
 
@@ -153,9 +169,9 @@ $this->params['breadcrumbs'][] = $this->title;
             </div>
             <div class="col-md-4">
                 <div class="center">
-                    <button class="btn btn-warning m-auto" type="submit">
+                    <a class="btn btn-warning m-auto" href="<?= Yii::$app->request->referrer ?>">
                         <?= \Yii::t('rabint', 'بازگشت'); ?>
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>

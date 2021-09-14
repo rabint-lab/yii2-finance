@@ -86,7 +86,11 @@ class DefaultController extends \rabint\controllers\DefaultController
         $payResult = $gateway->afterPay($transaction);
 //        die('aaaaaaa');
         if (isset($gateway->messages[$payResult])) {
-            $flashType = ($payResult == $gateway->gatewaySuccessStatus) ? 'success' : 'warning';
+            if($payResult == $gateway->gatewaySuccessStatus){
+                $flashType = 'success';
+            }else{
+                $flashType = 'warning';
+            }
             Yii::$app->getSession()->setFlash($flashType, $gateway->messages[$payResult]);
         }
         $returnUrl = $transaction->return_url;
