@@ -84,7 +84,7 @@ $this->params['breadcrumbs'][] = $this->title;
     </div>
 
     <div class="spacer"></div>
-    <?php if(class_exists(\app\modules\coupon\widget\CouponWidget::class)): ?>
+    <?php if(class_exists(\rabint\financeCoupon\widget\CouponWidget::class)): ?>
     <div class="facture_gateway">
         <div class="row">
             <div class="col offset-md-2 col-md-8">
@@ -93,7 +93,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         <h5 class="card-title">
                             <i class="fa fa-gift"></i> <?= \Yii::t('rabint', 'افزودن کد تخفیف'); ?>
                         </h5>
-                        <?= \app\modules\coupon\widget\CouponWidget::widget(['transaction_id'=>$model->id]) ?>
+                        <?= \rabint\financeCoupon\widget\CouponWidget::widget(['transaction_id'=>$model->id]) ?>
                     </div>
                 </div>
             </div>
