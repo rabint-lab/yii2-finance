@@ -157,7 +157,6 @@ class FinanceWallet extends \yii\db\ActiveRecord {
             $connection->createCommand()->batchInsert(
                     $tableName, ['created_at', 'user_id', 'amount', 'transactioner', 'transactioner_ip', 'description', 'metadata'], $allRows
             )->execute();
-
             $transaction->commit();
             return true;
         } catch (\Exception $e) {

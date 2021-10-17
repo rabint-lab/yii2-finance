@@ -42,6 +42,21 @@ class service
         return $model->save()===true?true:false;
     }
 
+    public function addAdditionalRow($id,$user_id,$amount,$discription,$metadata){
+        $model = $this->findModel($id);
+        if(!in_array($model->status,[FinanceTransactions::TRANSACTION_INPROCESS,FinanceTransactions::TRANSACTION_PENDING]))
+            return false;
+        $meta = json_decode($model->additional_rows,'true');
+        array_push($meta,[
+            "user_id" => $user_id,
+            "amount" => $amount,
+            "description" => $discription,
+            "metadata" => $metadata
+        ]);
+        $model->additional_rows = json_encode($meta);
+        return $model->save()===true?true:false;
+    }
+
     /**
      * @param $meta array|string
      * @param $without array
