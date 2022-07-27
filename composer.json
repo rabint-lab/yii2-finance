@@ -9,7 +9,7 @@
     ],
     "type": "yii2-extension",
     "homepage": "http://rabint.ir/yii2/ext/finance",
-    "license": "Exclusive",
+    "license": "MIT",
     "authors": [{
         "name": "rabint",
         "email": "info@rabint.ir",
@@ -19,7 +19,7 @@
     "minimum-stability": "beta",
     "require": {
         "rabint/base": "*",
-      "ext-json": "*"
+        "ext-json": "*"
     },
     "autoload": {
         "psr-4": {
