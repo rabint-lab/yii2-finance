@@ -5,13 +5,15 @@ namespace rabint\finance\addons;
 use vendor\rabint\finance\addons\nusoap_client;
 use Yii;
 
-class ZarrinpalGateway extends GatewayAbstract {
+class ZarrinpalGateway extends GatewayAbstract
+{
 
     //const URL='https://sandbox.zarinpal.com/pg/services/WebGate/wsdl';
-    const URL='https://www.zarinpal.com/pg/services/WebGate/wsdl';
-    const amountFactor=0.1;
+    const URL = 'https://www.zarinpal.com/pg/services/WebGate/wsdl';
+    const amountFactor = 0.1;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->code = 3;
         $this->slug = 'zarrinpal';
         $this->title = Yii::t('rabint', 'درگاه پرداخت زرین‌پال');
@@ -36,19 +38,34 @@ class ZarrinpalGateway extends GatewayAbstract {
             -2 => Yii::t('rabint', 'IP یا کد مرجع صحیح نیست'),
             -3 => Yii::t('rabint', 'رقم تراکنش باید بالای ۱۰۰ تومان باشد'),
             -4 => Yii::t('rabint', 'سطح تایید پذیرنده از سطح نقره‌ای پایین‌تر است'),
-            -11 => Yii::t('rabint', 'درخواست موردنظر یافت نشد'),
             -21 => Yii::t('rabint', 'هیچ نوع تراکنش مالی برای این تراکنش یافت نشد'),
             -22 => Yii::t('rabint', 'تراکنش ناموفق است'),
             -33 => Yii::t('rabint', 'رقم تراکنش با رقم پرداخت شده مطابقت ندارد'),
             -54 => Yii::t('rabint', 'درخواست موردنظر آرشیو شده'),
             100 => Yii::t('rabint', 'عملیات با موفقیت انجام شد'),
             101 => Yii::t('rabint', 'عملیات با موفقیت انجام شده، اما متد Verify قبلا بر روی این تراکنش اعمال شده است'),
+            -9 => Yii::t('rabint','خطای اعتبار سنجی'),
+            -10 => Yii::t('rabint','ای پی و يا مرچنت كد پذيرنده صحيح نيست'),
+            -12 =>Yii::t('rabint', 'تلاش بیش از حد در یک بازه زمانی کوتاه.'),
+            -15 =>Yii::t('rabint', 'ترمینال شما به حالت تعلیق در آمده با تیم پشتیبانی تماس بگیرید'),
+            -16 => Yii::t('rabint',' سطح تاييد پذيرنده پايين تر از سطح نقره اي است.'),
+            -30 => Yii::t('rabint','اجازه دسترسی به تسویه اشتراکی شناور ندارید'),
+            -31 =>Yii::t('rabint', ' حساب بانکی تسویه را به پنل اضافه کنید مقادیر وارد شده واسه تسهیم درست نیست'),
+            -32 =>Yii::t('rabint', 'Wages is not valid, Total wages(floating) has been overload max amount.'),
+            -34 =>Yii::t('rabint', 'مبلغ از کل تراکنش بیشتر است'),
+            -35 =>Yii::t('rabint', 'تعداد افراد دریافت کننده تسهیم بیش از حد مجاز است'),
+            -40 => Yii::t('rabint','Invalid extra params, expire_in is not valid.'),
+            -50 => Yii::t('rabint','مبلغ پرداخت شده با مقدار مبلغ در وریفای متفاوت است'),
+            -51 =>Yii::t('rabint', ' پرداخت ناموفق'),
+            -52 =>Yii::t('rabint', 'خطای غیر منتظره با پشتیبانی تماس بگیرید'),
+            -53 =>Yii::t('rabint', 'اتوریتی برای این مرچنت کد نیست'),
         ];
         require_once __DIR__ . DIRECTORY_SEPARATOR . "lib" . DIRECTORY_SEPARATOR . "nusoap.php";
     }
 
     //
-    public function startPay($orderId, $amount, $callbackUrl) {
+    public function startPay($orderId, $amount, $callbackUrl)
+    {
 
         $amount *= self::amountFactor;
 
@@ -62,7 +79,7 @@ class ZarrinpalGateway extends GatewayAbstract {
         }
 
         try {
-            $result = $client->call('PaymentRequest',  array(
+            $result = $client->call('PaymentRequest', array(
                 'MerchantID' => $this->config['merchantid'],
                 'Amount' => $amount,
                 'Description' => 'پرداخت سفارش شماره ' . $orderId,
@@ -78,7 +95,6 @@ class ZarrinpalGateway extends GatewayAbstract {
         } catch (\Exception $exception) {
             return (isset($this->messages[$result['status']])) ? $result['status'] : 1007;
         }
-
 
 
 //        $result = $client->call("PaymentRequest", array(
@@ -118,7 +134,8 @@ class ZarrinpalGateway extends GatewayAbstract {
     }
 
     //
-    public function payStatus($orderId, $gatewayData = []) {
+    public function payStatus($orderId, $gatewayData = [])
+    {
         // wiat for zarrin pal inner satteling
         sleep(5);
 //        \Yii::warning('pay_get:' . print_r($_GET, TRUE) . ' - pay_post:' . print_r($_POST, TRUE), 'payCheck');
@@ -136,16 +153,16 @@ class ZarrinpalGateway extends GatewayAbstract {
             'gateway_meta' => NULL
         ];
         $transaction = \rabint\finance\models\FinanceTransactions::findOne($orderId);
-        if ((!isset($_GET['Status'])) OR ( isset($_GET['Status']) AND ( $_GET['Status'] != 'OK'))) {
+        if ((!isset($_GET['Status'])) or (isset($_GET['Status']) and ($_GET['Status'] != 'OK'))) {
             $return['status'] = 1004;
         } else {
             $params = [
                 'MerchantID' => $this->config['merchantid'],
                 'Authority' => $_GET['Authority'],
-                'Amount' => ($transaction->amount*self::amountFactor),
+                'Amount' => ($transaction->amount * self::amountFactor),
             ];
             try {
-                $result = (array) $client->call('PaymentVerification',$params);
+                $result = (array)$client->call('PaymentVerification', $params);
             } catch (\Exception $exception) {
                 return (isset($this->messages[$result['status']])) ? $result['status'] : 1008;
             }
@@ -172,14 +189,16 @@ class ZarrinpalGateway extends GatewayAbstract {
     }
 
     //
-    public function verifyPay($orderId, $gatewayMeta = []) {
+    public function verifyPay($orderId, $gatewayMeta = [])
+    {
 //        return $this->payStatus($orderId,$gatewayMeta);
         return $this->gatewaySuccessStatus;
     }
 
     //
-    public function rollBack($orderId, $gatewayMeta = []) {
-        
+    public function rollBack($orderId, $gatewayMeta = [])
+    {
+
     }
 
 }

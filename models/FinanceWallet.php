@@ -13,6 +13,7 @@ use Yii;
  * @property integer $amount
  * @property integer $transactioner
  * @property string $transactioner_ip
+ * @property integer $bank_transaction_id
  * @property string $description
  * @property string $metadata
  */
@@ -33,7 +34,7 @@ class FinanceWallet extends \yii\db\ActiveRecord {
     public function rules() {
         return [
             [['created_at', 'user_id', 'amount', 'transactioner', 'transactioner_ip', 'description'], 'required'],
-            [['created_at', 'user_id', 'amount', 'transactioner', 'change_action'], 'integer'],
+            [['created_at', 'user_id', 'amount', 'transactioner', 'change_action','bank_transaction_id'], 'integer'],
             [['transactioner_ip', 'description', 'metadata'], 'string', 'max' => 255]
         ];
     }
@@ -49,6 +50,7 @@ class FinanceWallet extends \yii\db\ActiveRecord {
             'amount' => 'مبلغ',
             'transactioner' => 'انجام دهنده',
             'transactioner_ip' => 'Ip انجام دهنده',
+            'bank_transaction_id' => 'شناسه تراکنش بانکی',
             'description' => 'توضیحات',
             'metadata' => 'اطلاعات متا',
         ];
@@ -76,17 +78,22 @@ class FinanceWallet extends \yii\db\ActiveRecord {
         return intval($cash);
     }
 
-    static function inc($user_id, $amount, $transactioner = '', $transactioner_ip = '::1', $description = '', $metadata = '') {
+    static function inc($user_id, $amount, $transactioner = '', $transactioner_ip = '::1', $description = '', $metadata = '',$bank_tid=null) {
         $wallet = new FinanceWallet();
         $wallet->created_at = time();
         $wallet->user_id = $user_id;
         $wallet->amount = $amount;
         $wallet->transactioner = $transactioner;
         $wallet->transactioner_ip = $transactioner_ip;
+        $wallet->bank_transaction_id = $bank_tid;
         $wallet->description = $description;
         $wallet->metadata = json_encode($metadata);
 //        $wallet->save();
-        return ($wallet->save(false)) ? TRUE : FALSE;
+        try {
+            return ($wallet->save(false)) ? TRUE : FALSE;
+        }catch (\yii\db\IntegrityException $e){
+            return false;
+        }
     }
 
     static function dec($user_id, $amount, $transactioner = '', $transactioner_ip = '', $description = '', $metadata = '') {

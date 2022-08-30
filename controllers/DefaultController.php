@@ -98,11 +98,11 @@ class DefaultController extends \rabint\controllers\DefaultController
             Yii::$app->getSession()->setFlash($flashType, $gateway->messages[$payResult]);
         }
         $returnUrl = $transaction->return_url;
-//        if (strpos($returnUrl, '?') !== FALSE) {
-//            $returnUrl .='&tid=' . $tid;
-//        } else {
-//            $returnUrl .='?tid=' . $tid;
-//        }
+        if (strpos($returnUrl, '?') !== FALSE) {
+            $returnUrl .='&tid=' . $tid;
+        } else {
+            $returnUrl .='?tid=' . $tid;
+        }
 
         $_SESSION['finance']['transactionID'] = $tid;
         $_SESSION['finance']['pay_status'] = $transaction->status;

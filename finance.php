@@ -70,19 +70,19 @@ class finance extends \yii\base\Module
     public static function dashboardMenu()
     {
         $cash = \rabint\finance\models\FinanceWallet::cash(\rabint\helpers\user::id());
-        if(config('SERVICE.finance.showDashboardMenu',true)){
+        if (config('SERVICE.finance.showDashboardMenu', true)) {
             return [
                 'label' => Yii::t('rabint', 'مالی'),
                 'url' => '#',
                 'icon' => '<i class="fa fa-credit-card"></i>',
                 'options' => ['class' => 'treeview'],
-                'hit' => \Yii::t('app','موجودی حساب شما: '). number_format($cash). Yii::t('app', 'ریال'),
+                'hit' => \Yii::t('app', 'موجودی حساب شما: ') . number_format($cash) . Yii::t('app', 'ریال'),
                 'items' => [
-    //                [
-    //                    'label' => Yii::t('rabint', 'صورتحساب  ها'),
-    //                    'url' => ['/finance/transaction'],
-    //                    'icon' => '<i class="far fa-circle"></i>',
-    //                ],
+                    //                [
+                    //                    'label' => Yii::t('rabint', 'صورتحساب  ها'),
+                    //                    'url' => ['/finance/transaction'],
+                    //                    'icon' => '<i class="far fa-circle"></i>',
+                    //                ],
                     [
                         'label' => Yii::t('rabint', 'سوابق مالی'),
                         'url' => ['/finance/panel/wallet'],
@@ -93,14 +93,14 @@ class finance extends \yii\base\Module
                         'url' => ['/finance/panel/charge'],
                         'icon' => '<i class="far fa-circle"></i>',
                     ],
-    //                [
-    //                    'label' => Yii::t('rabint', 'حواله های ثبت شده'),
-    //                    'url' => ['/finance/admin-draft'],
-    //                    'icon' => '<i class="far fa-circle"></i>',
-    //                ],
+                    //                [
+                    //                    'label' => Yii::t('rabint', 'حواله های ثبت شده'),
+                    //                    'url' => ['/finance/admin-draft'],
+                    //                    'icon' => '<i class="far fa-circle"></i>',
+                    //                ],
                 ]
             ];
-        }else{
+        } else {
             return [];
         }
     }
@@ -109,7 +109,41 @@ class finance extends \yii\base\Module
     /* ################################################################### */
     /* =================================================================== */
 
-    public static function pay($args)
+    /**
+     * @return int
+     */
+    public static function preparePay()
+    {
+        if (Yii::$app->user->isGuest) {
+            $walletCredit = 0;
+            $user_id = 0;
+        } else {
+            $user_id = Yii::$app->user->identity->id;
+            $walletCredit = FinanceWallet::credit($user_id);
+        }
+
+        $transaction = new FinanceTransactions;
+        $transaction->created_at = time();
+        $transaction->transactioner = $user_id;
+        $transaction->amount = 0;
+        $transaction->status = FinanceTransactions::TRANSACTION_PENDING;
+        $transaction->transactioner_ip = Yii::$app->getRequest()->getUserIP();
+        $transaction->internal_reciept = '';
+        $transaction->token = md5(uniqid('FinanceTransactions', TRUE));
+        $transaction->return_url = '';
+        $transaction->additional_rows = '--';
+        $transaction->save(false);
+
+        return $transaction->id;
+    }
+
+    /**
+     * @param array $args
+     * @param FinanceTransactions $transModel
+     * @return bool|void
+     * @throws InvalidConfigException
+     */
+    public static function pay($args, $transModel = null)
     {
         $args = array_merge([
             'amount' => 0,
@@ -124,7 +158,7 @@ class finance extends \yii\base\Module
             'settleCallback' => [],
         ], $args);
 
-        if (!empty($args['additional_rows']) && !FinanceWallet::validateAdditionalRows($args['additional_rows'])){
+        if (!empty($args['additional_rows']) && !FinanceWallet::validateAdditionalRows($args['additional_rows'])) {
             var_dump($args['additional_rows']);
             throw new InvalidConfigException('additional rows config error');
         }
@@ -148,7 +182,11 @@ class finance extends \yii\base\Module
             $walletCredit = FinanceWallet::credit($user_id);
         }
         /* =================================================================== */
-        $transaction = new FinanceTransactions;
+        if ($transaction != null) {
+            $transaction = $transModel;
+        } else {
+            $transaction = new FinanceTransactions;
+        }
         $transaction->created_at = time();
         $transaction->transactioner = $user_id;
         $transaction->amount = $args['amount'];
@@ -244,11 +282,13 @@ class finance extends \yii\base\Module
         return $status;
     }
 
-    public static function getTransactionStatusByReciept($rid)
+    public static function getTransactionStatusByReciept($rid, $tid = null)
     {
-        return FinanceTransactions::findOne([
-            'internal_reciept' => $rid
-        ]);
+        $where['internal_reciept'] = $rid;
+        if (!empty($tid)) {
+            $where['id'] = $tid;
+        }
+        return FinanceTransactions::findOne($where);
 
 //        if ($model==null){
 //            return FALSE;

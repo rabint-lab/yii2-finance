@@ -23,9 +23,19 @@ abstract class GatewayAbstract {
 
     abstract public function rollBack($tid, $gatewayData = []);
 
+    /**
+     * @param $tid
+     * @param $data
+     * @return array
+     */
+    protected function getGatewayData($tid) {
+        return FinanceTransactions::getGatewayData($tid);
+    }
+
     protected function setGatewayData($tid, $data) {
         return FinanceTransactions::setGatewayData($tid, $data);
     }
+
 
     protected function setPayFailed($model) {
         return FinanceTransactions::setPayFailed($model);
