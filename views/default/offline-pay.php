@@ -1,5 +1,5 @@
 <?php
-$form = \yii\bootstrap\ActiveForm::begin();
+$form = \yii\widgets\ActiveForm::begin();
 ?>
 <div class="cantiner">
     <div class="row">
@@ -28,4 +28,4 @@ $form = \yii\bootstrap\ActiveForm::begin();
     </div>
 </div>
 <?php
-\yii\bootstrap\ActiveForm::end();
+\yii\widgets\ActiveForm::end();
