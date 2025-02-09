@@ -159,9 +159,19 @@ class finance extends \yii\base\Module
         ], $args);
 
         if (!empty($args['additional_rows']) && !FinanceWallet::validateAdditionalRows($args['additional_rows'])) {
-            var_dump($args['additional_rows']);
-            throw new InvalidConfigException('additional rows config error');
+            throw new InvalidConfigException('additional rows config error, it must has amount,description,user_id ');
         }
+
+        if(!isset($row['amount'])){
+            $err++;
+        }
+        if(!isset($row['description'])){
+            $err++;
+        }
+        if(!isset($row['user_id'])){
+            $err++;
+        }
+
         if ($args['forcePay']) {
             $args['showFacture'] = false;
         }
