@@ -17,32 +17,36 @@ use Yii;
  * @property string $description
  * @property string $metadata
  */
-class FinanceWallet extends \yii\db\ActiveRecord {
+class FinanceWallet extends \yii\db\ActiveRecord
+{
 
     public $change_action;
 
     /**
      * @inheritdoc
      */
-    public static function tableName() {
+    public static function tableName()
+    {
         return 'finance_wallet';
     }
 
     /**
      * @inheritdoc
      */
-    public function rules() {
+    public function rules()
+    {
         return [
             [['created_at', 'user_id', 'amount', 'transactioner', 'transactioner_ip', 'description'], 'required'],
-            [['created_at', 'user_id', 'amount', 'transactioner', 'change_action','bank_transaction_id'], 'integer'],
-            [['transactioner_ip', 'description', 'metadata'], 'string', 'max' => 255]
+            [['created_at', 'user_id', 'amount', 'transactioner', 'change_action'], 'integer'],
+            [['transactioner_ip', 'description', 'metadata', 'bank_transaction_id'], 'string', 'max' => 255]
         ];
     }
 
     /**
      * @inheritdoc
      */
-    public function attributeLabels() {
+    public function attributeLabels()
+    {
         return [
             'id' => 'ID',
             'created_at' => 'زمان تراکنش',
@@ -61,9 +65,10 @@ class FinanceWallet extends \yii\db\ActiveRecord {
      * @param type $user_id
      * @return int
      */
-    static function credit($user_id) {
+    static function credit($user_id)
+    {
         $profile = \rabint\helpers\user::profile($user_id);
-        $credit = $profile->credit??0;
+        $credit = $profile->credit ?? 0;
         $userCash = self::cash($user_id);
         return $credit + $userCash;
     }
@@ -73,12 +78,14 @@ class FinanceWallet extends \yii\db\ActiveRecord {
      * @param type $user_id
      * @return int
      */
-    static function cash($user_id) {
+    static function cash($user_id)
+    {
         $cash = FinanceWallet::find()->where(['user_id' => $user_id])->sum('amount');
         return intval($cash);
     }
 
-    static function inc($user_id, $amount, $transactioner = '', $transactioner_ip = '::1', $description = '', $metadata = '',$bank_tid=null) {
+    static function inc($user_id, $amount, $transactioner = '', $transactioner_ip = '::1', $description = '', $metadata = '', $bank_tid = null)
+    {
         $wallet = new FinanceWallet();
         $wallet->created_at = time();
         $wallet->user_id = $user_id;
@@ -91,12 +98,13 @@ class FinanceWallet extends \yii\db\ActiveRecord {
 //        $wallet->save();
         try {
             return ($wallet->save(false)) ? TRUE : FALSE;
-        }catch (\yii\db\IntegrityException $e){
+        } catch (\yii\db\IntegrityException $e) {
             return false;
         }
     }
 
-    static function dec($user_id, $amount, $transactioner = '', $transactioner_ip = '', $description = '', $metadata = '') {
+    static function dec($user_id, $amount, $transactioner = '', $transactioner_ip = '', $description = '', $metadata = '', $bank_tid = null)
+    {
         $userCredit = self::credit($user_id);
         if ($amount <= $userCredit) {
             $wallet = new FinanceWallet();
@@ -105,6 +113,7 @@ class FinanceWallet extends \yii\db\ActiveRecord {
             $wallet->amount = -1 * $amount;
             $wallet->transactioner = $transactioner;
             $wallet->transactioner_ip = $transactioner_ip;
+            $wallet->bank_transaction_id = $bank_tid;
             $wallet->description = $description;
             $wallet->metadata = json_encode($metadata);
             if ($wallet->save(false)) {
@@ -118,28 +127,31 @@ class FinanceWallet extends \yii\db\ActiveRecord {
         return FALSE;
     }
 
-    static function validateAdditionalRows($aditionalData) {
-        $err=0;
-        foreach ((array) $aditionalData as $row) {
-            if(!isset($row['amount'])){
+    static function validateAdditionalRows($aditionalData)
+    {
+        $err = 0;
+        foreach ((array)$aditionalData as $row) {
+            if (!isset($row['amount'])) {
                 $err++;
             }
-            if(!isset($row['description'])){
+            if (!isset($row['description'])) {
                 $err++;
             }
-            if(!isset($row['user_id'])){
+            if (!isset($row['user_id'])) {
                 $err++;
             }
         }
-        if($err){
+        if ($err) {
             return false;
         }
         return true;
     }
-    static function balancingPay($user_id, $aditionalData, $transactioner = '', $transactioner_ip = '') {
+
+    static function balancingPay($user_id, $aditionalData, $transactioner = '', $transactioner_ip = '')
+    {
         $allRows = [];
-        foreach ((array) $aditionalData as $row) {
-            if(!isset($row['amount'])){
+        foreach ((array)$aditionalData as $row) {
+            if (!isset($row['amount'])) {
                 continue;
             }
             $r_user_id = isset($row['user_id']) ? $row['user_id'] : $user_id;
@@ -154,7 +166,7 @@ class FinanceWallet extends \yii\db\ActiveRecord {
             ];
         }
 
-        if(empty($allRows)){
+        if (empty($allRows)) {
             return false;
         }
         $tableName = 'finance_wallet';
@@ -162,7 +174,7 @@ class FinanceWallet extends \yii\db\ActiveRecord {
         $transaction = $connection->beginTransaction();
         try {
             $connection->createCommand()->batchInsert(
-                    $tableName, ['created_at', 'user_id', 'amount', 'transactioner', 'transactioner_ip', 'description', 'metadata'], $allRows
+                $tableName, ['created_at', 'user_id', 'amount', 'transactioner', 'transactioner_ip', 'description', 'metadata'], $allRows
             )->execute();
             $transaction->commit();
             return true;
@@ -172,11 +184,13 @@ class FinanceWallet extends \yii\db\ActiveRecord {
         }
     }
 
-    public function getTransactionerUser() {
+    public function getTransactionerUser()
+    {
         return $this->hasOne(\rabint\user\models\User::className(), ['id' => 'transactioner']);
     }
 
-    public function getUser() {
+    public function getUser()
+    {
         return $this->hasOne(\rabint\user\models\User::className(), ['id' => 'user_id']);
     }
 
