@@ -57,6 +57,11 @@ class finance extends \yii\base\Module
                     'url' => ['/finance/admin-finance-offline-pay'],
                     'icon' => '<i class="far fa-circle"></i>',
                 ],
+                [
+                    'label' => Yii::t('rabint', 'کیف پول های متصل'),
+                    'url' => ['/finance/admin-wallet-connection'],
+                    'icon' => '<i class="far fa-circle"></i>',
+                ],
                 /*           [
                     'label' => Yii::t('rabint', 'حواله های ثبت شده'),
                     'url' => ['/finance/admin-draft'],
