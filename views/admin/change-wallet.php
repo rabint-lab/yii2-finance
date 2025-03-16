@@ -1,9 +1,6 @@
 <?php
 
-use kartik\select2\Select2;
-use yii\helpers\ArrayHelper;
 use yii\helpers\Html;
-use yii\web\View;
 use yii\widgets\ActiveForm;
 
 /* @var $this yii\web\View */
@@ -47,7 +44,7 @@ $money_unit = \rabint\helpers\currency::title();
     </div>
     <div class="clearfix"></div>
     <div class="col-sm-6">
-        <?= $form->field($model, 'amount')->textInput(['maxlength' => true])->label("مبلغ ($money_unit)"); ?>
+        <?= $form->field($model, 'amount')->input('text', ['class' => 'form-control ltrCenter', 'data-formatter' => 'money'])->label(Yii::t('app', 'مبلغ به {unit}', ['unit' => $money_unit])); ?>
     </div>
     <div class="clearfix"></div>
     <div class="col-sm-6">

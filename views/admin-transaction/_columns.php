@@ -49,8 +49,10 @@ return [
        'dateFormat' => 'j F Y H:i:s',
     ],
     [
-        'class' => '\kartik\grid\DataColumn',
         'attribute' => 'amount',
+        'value' => function ($model) {
+            return number_format($model->amount) . ' ریال';
+        }
     ],
     [
         'class' => \rabint\components\grid\AdvanceEnumColumn::class,

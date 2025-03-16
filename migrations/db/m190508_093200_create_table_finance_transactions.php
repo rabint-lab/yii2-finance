@@ -25,12 +25,14 @@ class m190508_093200_create_table_finance_transactions extends Migration
             'settle_callback_function' => $this->text()->comment('تابع تایید پرداخت'),
             'token' => $this->string(255)->notNull()->comment('کلید'),
             'return_url' => $this->string(255)->notNull()->comment('لینک بازگشت'),
+            'creator_id' => $this->integer(11)->comment('ایجاد کننده'),
             'internal_meta' => $this->text()->comment('متادیتای داخلی'),
             'additional_rows' => $this->text()->notNull()->comment('اطلاعات فاکتور'),
             'metadata' => $this->string(255)->comment('متادیتا'),
         ], $tableOptions);
 
         $this->addForeignKey('fk_finance_transaction_user_id', '{{%finance_transactions}}', 'transactioner', '{{%user}}', 'id', 'SET NULL', 'CASCADE');
+        $this->addForeignKey('fk_finance_transaction_creator_id', '{{%finance_transactions}}', 'creator_id', '{{%user}}', 'id', 'SET NULL', 'CASCADE');
 
         //ALTER TABLE `finance_transactions` CHANGE `gateway_meta` `gateway_meta` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT 'اطلاعات درگاه';
     }

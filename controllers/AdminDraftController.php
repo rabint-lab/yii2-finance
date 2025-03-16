@@ -31,6 +31,15 @@ class AdminDraftController extends \rabint\controllers\AdminController {
                     'bulk' => ['POST'],
                 ],
             ],
+            'access' => [
+                'class' => \yii\filters\AccessControl::className(),
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'roles' => ['FinView'],
+                    ],
+                ],
+            ],
         ]);
     }
 

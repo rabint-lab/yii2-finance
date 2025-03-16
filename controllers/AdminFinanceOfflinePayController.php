@@ -31,6 +31,15 @@ class AdminFinanceOfflinePayController extends \rabint\controllers\AdminControll
                     'bulk' => ['POST'],
                 ],
             ],
+            'access' => [
+                'class' => \yii\filters\AccessControl::className(),
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'roles' => ['FinView'],
+                    ],
+                ],
+            ],
         ]);
     }
 

@@ -33,7 +33,7 @@ class finance extends \yii\base\Module
         return [
             'label' => Yii::t('rabint', 'مالی'),
             'url' => '#',
-            'visible' => \rabint\helpers\user::can('manager'),
+            'visible' => \rabint\helpers\user::can('FinView'),
             'icon' => '<i class="fa fa-credit-card"></i>',
             'options' => ['class' => 'treeview'],
             'items' => [
@@ -41,33 +41,37 @@ class finance extends \yii\base\Module
                     'label' => Yii::t('rabint', 'صورتحساب  ها'),
                     'url' => ['/finance/admin-transaction'],
                     'icon' => '<i class="far fa-circle"></i>',
+                    'visible' => Yii::$app->user->can('FinView'),
                 ],
                 [
                     'label' => Yii::t('rabint', 'تراکنش ها'),
                     'url' => ['/finance/admin/wallet'],
                     'icon' => '<i class="far fa-circle"></i>',
+                    'visible' => Yii::$app->user->can('FinView'),
                 ],
                 [
                     'label' => Yii::t('rabint', 'افزودن و کاهش وجه'),
                     'url' => ['/finance/admin/change-wallet'],
                     'icon' => '<i class="far fa-circle"></i>',
+                    'visible' => Yii::$app->user->can('FinChangeWallet'),
                 ],
                 [
                     'label' => Yii::t('rabint', 'پرداخت های آفلاین'),
                     'url' => ['/finance/admin-finance-offline-pay'],
                     'icon' => '<i class="far fa-circle"></i>',
+                    'visible' => Yii::$app->user->can('FinView'),
                 ],
                 [
                     'label' => Yii::t('rabint', 'کیف پول های متصل'),
                     'url' => ['/finance/admin-wallet-connection'],
                     'icon' => '<i class="far fa-circle"></i>',
+                    'visible' => Yii::$app->user->can('FinWalletConnect'),
                 ],
-                /*           [
-                    'label' => Yii::t('rabint', 'حواله های ثبت شده'),
-                    'url' => ['/finance/admin-draft'],
-                    'icon' => '<i class="far fa-circle"></i>',
-                ],
-                */
+//                [
+//                    'label' => Yii::t('rabint', 'حواله های ثبت شده'),
+//                    'url' => ['/finance/admin-draft'],
+//                    'icon' => '<i class="far fa-circle"></i>',
+//                ],
             ]
         ];
     }
@@ -83,26 +87,31 @@ class finance extends \yii\base\Module
                 'options' => ['class' => 'treeview'],
                 'hit' => \Yii::t('app', 'موجودی حساب شما: ') . number_format($cash) . Yii::t('app', 'ریال'),
                 'items' => [
-                    //                [
-                    //                    'label' => Yii::t('rabint', 'صورتحساب  ها'),
-                    //                    'url' => ['/finance/transaction'],
-                    //                    'icon' => '<i class="far fa-circle"></i>',
-                    //                ],
                     [
-                        'label' => Yii::t('rabint', 'سوابق مالی'),
-                        'url' => ['/finance/panel/wallet'],
-                        'icon' => '<i class="far fa-circle"></i>',
+                        'label' => Yii::t('rabint', 'صورت‌حساب ها'),
+                        'url' => ['/finance/transaction'],
+                        'icon' => '<i class="fas fa-file-invoice"></i>', // آیکون مناسب برای صورتحساب
                     ],
                     [
                         'label' => Yii::t('rabint', 'شارژ حساب'),
                         'url' => ['/finance/panel/charge'],
-                        'icon' => '<i class="far fa-circle"></i>',
+                        'icon' => '<i class="    fas fa-plus-circle"></i>', // آیکون مناسب برای شارژ حساب
                     ],
-                    //                [
-                    //                    'label' => Yii::t('rabint', 'حواله های ثبت شده'),
-                    //                    'url' => ['/finance/admin-draft'],
-                    //                    'icon' => '<i class="far fa-circle"></i>',
-                    //                ],
+                    [
+                        'label' => Yii::t('rabint', 'سوابق مالی'),
+                        'url' => ['/finance/panel/wallet'],
+                        'icon' => '<i class="fas fa-wallet"></i>', // آیکون مناسب برای سوابق مالی
+                    ],
+                    [
+                        'label' => Yii::t('rabint', 'ثبت واریزی'),
+                        'url' => ['/finance/panel/add-draft'],
+                        'icon' => '<i class="fas fa-money-check-alt"></i>', // آیکون مناسب برای ثبت واریزی
+                    ],
+                    [
+                        'label' => Yii::t('rabint', 'گزارش واریزی'),
+                        'url' => ['/finance/panel/drafts'],
+                        'icon' => '<i class="fas fa-file-alt"></i>', // آیکون مناسب برای گزارش واریزی
+                    ],
                 ]
             ];
         } else {
@@ -167,13 +176,13 @@ class finance extends \yii\base\Module
             throw new InvalidConfigException('additional rows config error, it must has amount,description,user_id ');
         }
 
-        if(!isset($row['amount'])){
+        if (!isset($row['amount'])) {
             $err++;
         }
-        if(!isset($row['description'])){
+        if (!isset($row['description'])) {
             $err++;
         }
-        if(!isset($row['user_id'])){
+        if (!isset($row['user_id'])) {
             $err++;
         }
 

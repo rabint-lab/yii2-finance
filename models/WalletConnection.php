@@ -24,6 +24,11 @@ class WalletConnection extends \common\models\base\ActiveRecord     /* \yii\db\A
     const STATUS_PENDING = 1;
     const STATUS_PUBLISH = 2;
 
+    public static function providers(){
+        return [
+            'ozon'=>['title'=>'کیف پول اوزون','class'=>'success']
+        ];
+    }
     /**
      * @inheritdoc
      */
@@ -59,7 +64,7 @@ class WalletConnection extends \common\models\base\ActiveRecord     /* \yii\db\A
     public function rules()
     {
         return [
-            [['user_id', 'provider', 'created_at'], 'required'],
+            [['user_id', 'provider'], 'required'],
             [['user_id', 'expire_date', 'created_at'], 'integer'],
             [['provider'], 'string', 'max' => 20],
             [['user_id'], 'exist', 'skipOnError' => true, 'targetClass' => User::class, 'targetAttribute' => ['user_id' => 'id']],

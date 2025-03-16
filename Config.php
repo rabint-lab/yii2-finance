@@ -2,6 +2,7 @@
 
 namespace rabint\finance;
 
+use common\models\User;
 use Yii;
 use yii\base\InvalidConfigException;
 
@@ -18,20 +19,25 @@ use yii\base\InvalidConfigException;
  * @property string $gateway_meta
  * @property string $transactioner_ip
  * @property string $internal_reciept
+ * @property string $settle_callback_function
  * @property string $token
  * @property string $return_url
  * @property string $additional_rows
+ * @property integer $creator_id
  * @property string $internal_meta
  * @property string $metadata
  */
 class Config extends \yii\db\ActiveRecord
 {
 
+    const SCENARIO_ADMIN_INVOICE = 'admin_invoice';
+
     const TAX_PERCENT = 0;
 
     //const GATEWAY_SELECT_METHOD = 'auto';
     const GATEWAY_SELECT_METHOD = 'manual';
     const ALLOW_USE_WALLET = true;
+    const ALLOW_NEGATIVE_WALLET = false;
     const AUTO_PAY_BY_WALLET = FALSE;
     const SHOW_FACTURE_PAGE = true;
 
@@ -70,14 +76,46 @@ class Config extends \yii\db\ActiveRecord
         ];
     }
 
-    public static function defaultPaymentGatewayId(){
-        return config('SERVICE.finance.defaultGatewayId',1);
+    public function behaviors()
+    {
+        return [
+            [
+                'class' => \yii\behaviors\TimestampBehavior::class,
+                'createdAtAttribute' => 'created_at',
+                'updatedAtAttribute' => false,
+                'value' => time(),
+            ],
+            [
+                'class' => \yii\behaviors\BlameableBehavior::class,
+                'createdByAttribute' => 'creator_id',
+                'updatedByAttribute' => false,
+            ],
+        ];
     }
+
+//    public function scenarios()
+//    {
+//        $scenarios = parent::scenarios();
+//        $scenarios[self::SCENARIO_ADMIN_INVOICE] = ['status'];
+//        return $scenarios;
+//    }
+
+
+    public static function defaultPaymentGatewayId()
+    {
+        return config('SERVICE.finance.defaultGatewayId', 1);
+    }
+
+    public static function getNotifyConfig()
+    {
+        return config('SERVICE.finance.notify', 0);
+    }
+
     public static function paymentGateways()
     {
         //$gateways = static::$paymentGateways;
-        $gateways = config('SERVICE.finance.gateways',false);
-        if(empty($gateways)){
+        $gateways = config('SERVICE.finance.gateways', false);
+        if (empty($gateways)) {
             throw new InvalidConfigException('لطفا تنظیمات درگاه های بانکی را در بخش انوایرومنت وبسایت انجام دهید');
         }
         if (USER_CAN_DEBUG) {
@@ -94,9 +132,12 @@ class Config extends \yii\db\ActiveRecord
     {
         return [
             [['created_at', 'transactioner', 'amount', 'status', 'gateway', 'transactioner_ip', 'internal_reciept', 'token', 'return_url', 'additional_rows'], 'required'],
-            [['created_at', 'transactioner', 'amount', 'status', 'gateway'], 'integer'],
-            [['additional_rows', 'metadata','settle_callback_function','gateway_meta','internal_meta'], 'string'],
-            [['gateway_reciept', 'transactioner_ip', 'internal_reciept', 'token', 'return_url'], 'string', 'max' => 255]
+            [['created_at', 'transactioner', 'status', 'gateway', 'creator_id'], 'integer'],
+            [['additional_rows', 'metadata', 'settle_callback_function', 'gateway_meta', 'internal_meta'], 'string'],
+            [['gateway_reciept', 'transactioner_ip', 'internal_reciept', 'token', 'return_url'], 'string', 'max' => 255],
+            [['metadata'], 'required', 'on' => self::SCENARIO_ADMIN_INVOICE],
+            ['amount', 'integer', 'on' => self::SCENARIO_DEFAULT],
+            ['amount', 'safe', 'on' => self::SCENARIO_ADMIN_INVOICE],
         ];
     }
 
@@ -108,7 +149,7 @@ class Config extends \yii\db\ActiveRecord
         return [
             'id' => Yii::t('rabint', 'شناسه'),
             'created_at' => Yii::t('rabint', 'زمان درخواست'),
-            'transactioner' => Yii::t('rabint', 'انجام دهنده'),
+            'transactioner' => Yii::t('rabint', 'کاربر'),
             'amount' => Yii::t('rabint', 'مبلغ'),
             'status' => Yii::t('rabint', 'وضعیت'),
             'gateway' => Yii::t('rabint', 'درگاه'),
@@ -120,10 +161,27 @@ class Config extends \yii\db\ActiveRecord
             'return_url' => Yii::t('rabint', 'لینک بازگشت'),
             'additional_rows' => Yii::t('rabint', 'تراکنش های مرتبط'),
             'internal_meta' => Yii::t('rabint', 'متادیتای داخلی'),
-            'metadata' => Yii::t('rabint', 'اطلاعات متا'),
+            'creator_id' => Yii::t('rabint', 'سازنده'),
+            'metadata' => Yii::t('rabint', 'شرح صورتحساب'),
         ];
     }
 
 
     /* =================================================================== */
+
+    /**
+     * @return \common\models\base\ActiveQuery
+     */
+    public function getTransactionerUser()
+    {
+        return $this->hasOne(User::className(), ['id' => 'transactioner']);
+    }
+
+    /**
+     * @return \common\models\base\ActiveQuery
+     */
+    public function getCreatorUser()
+    {
+        return $this->hasOne(User::className(), ['id' => 'creator_id']);
+    }
 }

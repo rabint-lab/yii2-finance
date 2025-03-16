@@ -16,6 +16,7 @@ class m190508_093200_create_table_finance_wallet extends Migration
             'created_at' => $this->integer(11)->notNull()->comment('زمان درخواست'),
             'user_id' => $this->integer(11)->comment('ذینفغ'),
             'amount' => $this->integer(11)->notNull()->comment('مبلغ'),
+            'w_num' => $this->tinyInteger(1)->defaultValue(0)->notNull()->comment('شماره کیف'),
             'transactioner' => $this->integer(11)->comment('انجام دهنده'),
             'transactioner_ip' => $this->string(255)->notNull()->comment('آی پی انجام دهده'),
             'bank_transaction_id' => $this->integer(11)->Null()->unique()->comment('شناسه تراکنش بانک'),

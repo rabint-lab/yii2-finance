@@ -7,7 +7,7 @@ use yii\widgets\DetailView;
 /* @var $model rabint\finance\models\FinanceTransactions */
 
 $this->title = $model->id;
-$this->params['breadcrumbs'][] = ['label' => Yii::t('rabint', 'Finance Transactions'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => Yii::t('rabint', 'صورتحساب کاربر'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 
 $isModalAjax = Yii::$app->request->isAjax;

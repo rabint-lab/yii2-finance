@@ -10,49 +10,36 @@ return [
         'class' => 'kartik\grid\SerialColumn',
         'width' => '30px',
     ],
-    // [
-    //    'class' => '\kartik\grid\DataColumn',
-    //    'attribute' => 'creator_id',
-    //    'value' => function ($model) {
-    //        return $model->creator ? $model->creator->displayName : $model->creator_id;
-    //    },
-    //],
+     [
+        'class' => '\kartik\grid\DataColumn',
+        'attribute' => 'user_id',
+        'value' => function ($model) {
+            return $model->user ? $model->user->displayName : $model->user_id;
+        },
+    ],
     //[
     //    'class' => \rabint\components\grid\AttachmentColumn::class,
     //    'attribute' => 'avatar',
     //    'size' => [60, 80],
     // // 'filterOptions' => ['style' => 'max-width:60px;'],
     //],
-    //[
-    //    'class' => \rabint\components\grid\AdvanceEnumColumn::class,
-    //    'attribute' => 'status',
-    //    'enum' => \app\modules\open\models\Company::statuses(),
-    //],
-    //[
-    //    'class' => \rabint\components\grid\JDateColumn::class,
-    //    'attribute' => 'establish_date',
-    //    'dateFormat' => 'j F Y H:i:s',
-    //],
-        // [
-        // 'class'=>'\kartik\grid\DataColumn',
-        // 'attribute'=>'id',
-    // ],
     [
-        'class'=>'\kartik\grid\DataColumn',
-        'attribute'=>'user_id',
+        'class' => \rabint\components\grid\AdvanceEnumColumn::class,
+        'attribute' => 'provider',
+        'enum' => \rabint\finance\models\WalletConnection::providers(),
+    ],
+
+    [
+        'class' => \rabint\components\grid\JDateColumn::class,
+        'attribute' => 'expire_date',
+        'dateFormat' => 'j F Y H:i:s',
     ],
     [
-        'class'=>'\kartik\grid\DataColumn',
-        'attribute'=>'provider',
+        'class' => \rabint\components\grid\JDateColumn::class,
+        'attribute' => 'created_at',
+        'dateFormat' => 'j F Y H:i:s',
     ],
-    [
-        'class'=>'\kartik\grid\DataColumn',
-        'attribute'=>'expire_date',
-    ],
-    // [
-        // 'class'=>'\kartik\grid\DataColumn',
-        // 'attribute'=>'created_at',
-    // ],
+
     [
         'class' => 'kartik\grid\ActionColumn',
         'dropdown' => false,
@@ -77,7 +64,7 @@ return [
                           'data-toggle'=>'tooltip',
                           'data-confirm-title'=>Yii::t('rabint', 'Are you sure?'),
                           'data-confirm-message'=>Yii::t('rabint', 'Are you sure want to delete this item?')         ],
-//        'template' => '{view} {update} {delete} <br/>{shortlink}',
+        'template' => '{delete} <br/>{shortlink}',
 //        'buttons' => [
 //            'shortlink' => function ($url, $model) {
 //                $url = \Yii::$app->urlManager->createUrl(['/open/admin/index', 'EmployeeExecutiveSearch' => ['employee_id'=>$model->_id]]);

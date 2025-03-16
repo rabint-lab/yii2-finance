@@ -7,7 +7,7 @@ use rabint\widgets\GridView;
 /* @var $searchModel rabint\finance\models\WalletConnectionSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = Yii::t('rabint', 'Wallet Connections');
+$this->title = Yii::t('rabint', 'دسترسی های کیف پول');
 $this->params['breadcrumbs'][] = $this->title;
 
 $this->context->layout = "@themeLayouts/full";
@@ -28,7 +28,7 @@ $this->context->layout = "@themeLayouts/full";
             'filterModel' => $searchModel,
             'pjax'=>true,
             'columns' => require(__DIR__.'/_columns.php'),
-            'modelTitle' => Yii::t('rabint', 'Wallet Connections'),
+            'modelTitle' => Yii::t('rabint', 'دسترسی کیف پول'),
             'bulkActions' => $this->context::bulkActions(),
         ])?>
     </div>

@@ -2,17 +2,14 @@
 
 namespace rabint\finance\controllers;
 
-use rabint\finance\addons\OfflineGateway;
 use rabint\finance\addons\WalletGateway;
 use rabint\finance\models\FinanceOfflinePay;
-use Yii;
 use rabint\finance\models\FinanceTransactions;
-use rabint\finance\models\FinanceTransactionsSearch;
-#use yii\web\Controller;
-use yii\base\Exception;
-use yii\helpers\Url;
-use yii\web\NotFoundHttpException;
+use Yii;
 use yii\filters\VerbFilter;
+use yii\web\NotFoundHttpException;
+
+#use yii\web\Controller;
 
 class DefaultController extends \rabint\controllers\DefaultController
 {
@@ -90,18 +87,25 @@ class DefaultController extends \rabint\controllers\DefaultController
         $payResult = $gateway->afterPay($transaction);
 //        die('aaaaaaa');
         if (isset($gateway->messages[$payResult])) {
-            if($payResult == $gateway->gatewaySuccessStatus){
+            if ($payResult == $gateway->gatewaySuccessStatus) {
                 $flashType = 'success';
-            }else{
+            } else {
                 $flashType = 'warning';
             }
             Yii::$app->getSession()->setFlash($flashType, $gateway->messages[$payResult]);
         }
         $returnUrl = $transaction->return_url;
+        if ($returnUrl == '-') {
+            return $this->render('after-pay', [
+                'transaction' => $transaction,
+                'pay_result' => ($payResult == $gateway->gatewaySuccessStatus),
+                'message' => $gateway->messages[$payResult] ?? "",
+            ]);
+        }
         if (strpos($returnUrl, '?') !== FALSE) {
-            $returnUrl .='&tid=' . $tid;
+            $returnUrl .= '&tid=' . $tid;
         } else {
-            $returnUrl .='?tid=' . $tid;
+            $returnUrl .= '?tid=' . $tid;
         }
 
         $_SESSION['finance']['transactionID'] = $tid;
@@ -110,35 +114,38 @@ class DefaultController extends \rabint\controllers\DefaultController
         return Yii::$app->controller->redirect($returnUrl);
     }
 
-    public function actionOfflinePay($id){
+    public function actionOfflinePay($id)
+    {
         $request = Yii::$app->request;
         $model = FinanceOfflinePay::findOne($id);
-        if(!empty($request->post())){
-            $post=$request->post();
+        if (!empty($request->post())) {
+            $post = $request->post();
             $model->load($post);
-            if($model->save()){
-                Yii::$app->session->setFlash('success',Yii::t('rabint','فیش با موفقیت ثبت شد.پس از تایید مدیر فاکتور شما ثبت میگردد.'));
+            if ($model->save()) {
+                Yii::$app->session->setFlash('success', Yii::t('rabint', 'فیش با موفقیت ثبت شد.پس از تایید مدیر فاکتور شما ثبت میگردد.'));
                 return $this->redirect(['/']);
-            }else{
-                var_dump($model->errors);exit();
-                Yii::$app->session->setFlash('warning',Yii::t('rabint','ثبت فیش با مشکل مواجه شد.'));
+            } else {
+                var_dump($model->errors);
+                exit();
+                Yii::$app->session->setFlash('warning', Yii::t('rabint', 'ثبت فیش با مشکل مواجه شد.'));
             }
         }
-        if($model->user_id!=Yii::$app->user->id){
+        if ($model->user_id != Yii::$app->user->id) {
             return false;
         }
-        return $this->render('offline-pay',['model'=>$model]);
+        return $this->render('offline-pay', ['model' => $model]);
     }
 
-    public function actionOfflinePayChangeStatus($id,$status){
+    public function actionOfflinePayChangeStatus($id, $status)
+    {
         $model = FinanceOfflinePay::findOne($id);
-        if($model!=null){
+        if ($model != null) {
             $model->status = $status;
-            if($model->save()){
-                if($status==FinanceOfflinePay::STATUS_ACCEPTED)
+            if ($model->save()) {
+                if ($status == FinanceOfflinePay::STATUS_ACCEPTED)
                     redirect($model->callback);
-            }else{
-                Yii::$app->session->setFlash('warning',Yii::t('rabint','ثبت وضعیت با مشکل مواجه شد.'));
+            } else {
+                Yii::$app->session->setFlash('warning', Yii::t('rabint', 'ثبت وضعیت با مشکل مواجه شد.'));
             }
         }
         return false;

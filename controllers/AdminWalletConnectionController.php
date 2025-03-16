@@ -31,6 +31,16 @@ class AdminWalletConnectionController extends \rabint\controllers\AdminControlle
                     'bulk' => ['POST'],
                 ],
             ],
+            'access' => [
+                'class' => \yii\filters\AccessControl::className(),
+                'rules' => [
+                    [
+                        'allow' => true,
+                        'roles' => ['FinWalletConnect'],
+                    ],
+                    // everything else is denied
+                ],
+            ],
         ]);
     }
 

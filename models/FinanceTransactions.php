@@ -4,11 +4,8 @@ namespace rabint\finance\models;
 
 include_once dirname(__DIR__) . '/Config.php';
 
-use Yii;
-use rabint\finance\models\FinanceWallet;
-use rabint\finance\Config;
-
 use common\models\User;
+use rabint\finance\Config;
 
 
 class FinanceTransactions extends Config
@@ -76,11 +73,5 @@ class FinanceTransactions extends Config
         return FALSE;
     }
 
-    /**
-     * @return \common\models\base\ActiveQuery
-     */
-    public function getTransactionerUser()
-    {
-        return $this->hasOne(User::className(), ['id' => 'transactioner']);
-    }
+
 }

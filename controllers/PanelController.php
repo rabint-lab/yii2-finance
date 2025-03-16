@@ -2,13 +2,15 @@
 
 namespace rabint\finance\controllers;
 
-use Yii;
 use rabint\finance\models\FinanceDraft;
 use rabint\finance\models\FinanceDraftSearch;
+use Yii;
 
-class PanelController extends \rabint\controllers\PanelController {
+class PanelController extends \rabint\controllers\PanelController
+{
 
-    public function actions() {
+    public function actions()
+    {
         return [
             'check-upload' => [
                 'class' => 'rabint\attachment\actions\UploadAction',
@@ -22,15 +24,16 @@ class PanelController extends \rabint\controllers\PanelController {
     /**
      * @return array
      */
-    public function behaviors() {
+    public function behaviors()
+    {
         $ret = parent::behaviors();
         return $ret + [
-            'verbs' => [
-                'class' => \yii\filters\VerbFilter::className(),
-                'actions' => [
-                    'check-upload' => ['post']
+                'verbs' => [
+                    'class' => \yii\filters\VerbFilter::className(),
+                    'actions' => [
+                        'check-upload' => ['post']
+                    ],
                 ],
-            ],
 //            'environment' => [
 //                'class' => \rabint\filters\EnvironmentFilter::className(),
 //                'actions' => [
@@ -38,10 +41,11 @@ class PanelController extends \rabint\controllers\PanelController {
 //                    'profile' => 'panel',
 //                ],
 //            ],
-        ];
+            ];
     }
 
-    public function actionAddDraft() {
+    public function actionAddDraft()
+    {
         $model = new FinanceDraft();
 
         if ($model->load(Yii::$app->request->post())) {
@@ -55,36 +59,39 @@ class PanelController extends \rabint\controllers\PanelController {
             }
         }
         return $this->render('add-draft', [
-                    'model' => $model,
+            'model' => $model,
         ]);
     }
 
-    public function actionDrafts() {
+    public function actionDrafts()
+    {
         $searchModel = new FinanceDraftSearch();
         $params = Yii::$app->request->queryParams;
         $params['FinanceDraftSearch']['user_id'] = \rabint\helpers\user::id();
         $dataProvider = $searchModel->search($params);
 
         return $this->render('drafts', [
-                    'searchModel' => $searchModel,
-                    'dataProvider' => $dataProvider,
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
         ]);
     }
 
-    public function actionCharge() {
+    public function actionCharge($amount = null)
+    {
         $model = new \rabint\finance\models\FinanceWallet;
         if ($model->load(Yii::$app->request->post())) {
             $userId = \rabint\helpers\user::id();
             $userIp = \rabint\helpers\user::ip();
-            $amount = $model->amount;
+            $amount = str_replace('٫', '', $model->amount);
+
             $res = \rabint\finance\finance::pay([
-                        'amount' => $amount,
-                        'internal_reciept' => 'FinanceCharge',
-                        'return_url' => \yii\helpers\Url::to(['wallet']),
-                        'internal_meta' => '',
-                        'additional_rows' => [],
+                'amount' => $amount,
+                'internal_reciept' => 'FinanceCharge',
+                'return_url' => \yii\helpers\Url::to(['wallet']),
+                'internal_meta' => '',
+                'additional_rows' => [],
 //                        'description' => $model->description
-                        'forcePay' => TRUE
+                'forcePay' => TRUE
             ]);
             /* =================================================================== */
             if ($res == FALSE) {
@@ -92,18 +99,21 @@ class PanelController extends \rabint\controllers\PanelController {
             }
             return $this->redirect(['index']);
         }
+        $model->amount = empty($model->amount) ? ($amount ?? null) : $model->amount;
+
         return $this->render('charge', ['model' => $model]);
     }
 
-    public function actionWallet() {
+    public function actionWallet()
+    {
         $searchModel = new \rabint\finance\models\FinanceWalletSearch();
         $params = Yii::$app->request->queryParams;
         $params['FinanceWalletSearch']['user_id'] = \rabint\helpers\user::id();
         $dataProvider = $searchModel->search($params);
 
         return $this->render('wallet', [
-                    'searchModel' => $searchModel,
-                    'dataProvider' => $dataProvider,
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
         ]);
     }
 

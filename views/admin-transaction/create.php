@@ -7,7 +7,7 @@ use yii\bootstrap4\Html;
 /* @var $model rabint\finance\models\FinanceTransactions */
 
 
-$this->title = Yii::t('rabint', 'Create') .  ' ' . Yii::t('rabint', 'Finance Transactions') . ' ' . $model->id;
+$this->title = Yii::t('rabint', 'Create') .  ' ' . Yii::t('rabint', 'صورتحساب برای کاربر') . ' ' . $model->id;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('rabint', 'Finance Transactions'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
