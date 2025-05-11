@@ -3,6 +3,8 @@
 namespace rabint\finance\models;
 
 use Yii;
+use yii\db\Expression;
+use yii\db\Transaction;
 
 /**
  * This is the model class for table "finance_wallet".
@@ -144,27 +146,48 @@ class FinanceWallet extends \yii\db\ActiveRecord
 
     static function dec($user_id, $amount, $transactioner = '', $transactioner_ip = '', $description = '', $metadata = '', $bank_tid = null, $w_num = 0)
     {
-        $userCredit = self::credit($user_id);
-        if ($amount <= $userCredit) {
-            $wallet = new FinanceWallet();
-            $wallet->created_at = time();
-            $wallet->user_id = $user_id;
-            $wallet->amount = -1 * $amount;
-            $wallet->w_num = $w_num;
-            $wallet->transactioner = $transactioner;
-            $wallet->transactioner_ip = $transactioner_ip;
-            $wallet->bank_transaction_id = $bank_tid;
-            $wallet->description = $description;
-            $wallet->metadata = json_encode($metadata);
-            if ($wallet->save(false)) {
-                if (self::credit($user_id) >= 0) {
-                    return TRUE;
-                } else {
-                    $wallet->delete();
+        $transaction = Yii::$app->db->beginTransaction();
+        try {
+            $userCredit = Yii::$app->db->createCommand('
+            SELECT SUM(amount) 
+            FROM finance_wallet 
+            WHERE user_id = :user_id 
+            FOR UPDATE
+        ', [':user_id' => $user_id])->queryScalar();
+
+            $userCredit = $userCredit ?: 0;
+
+            if ($amount <= $userCredit) {
+                $wallet = new FinanceWallet();
+                $wallet->created_at = time();
+                $wallet->user_id = $user_id;
+                $wallet->amount = -1 * $amount;
+                $wallet->w_num = $w_num;
+                $wallet->transactioner = $transactioner;
+                $wallet->transactioner_ip = $transactioner_ip;
+                $wallet->bank_transaction_id = $bank_tid;
+                $wallet->description = $description;
+                $wallet->metadata = json_encode($metadata);
+
+                // ذخیره رکورد
+                if ($wallet->save(false)) {
+                    $newCredit = self::credit($user_id);
+                    if ($newCredit >= 0) {
+                        $transaction->commit();
+                        return true;
+                    } else {
+                        $wallet->delete();
+                    }
                 }
             }
+
+            $transaction->rollBack();
+            return false;
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            \Yii::error("Error in wallet dec: " . $e->getMessage());
+            return false;
         }
-        return FALSE;
     }
 
     static function validateAdditionalRows($aditionalData)
